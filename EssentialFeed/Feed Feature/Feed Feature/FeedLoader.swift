@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum Result {
+public enum FeedLoaderResult {
     case success([FeedItem])
-    case error(Error)
+    case failure(Error)
 }
 
 protocol FeedLoader {
-    func load(completion: @escaping () -> Void)
+    func load(completion: @escaping (FeedLoaderResult) -> Void)
 }
