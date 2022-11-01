@@ -115,38 +115,21 @@ class CacheFeedUseCaseTests: XCTestCase {
     
     func test_save_failsOnDeletionError() {
         let (sut, store) = makeSUT()
-        let items = [uniqueItem, uniqueItem]
-        let exp = expectation(description: "wait for save completion")
-        
-        var receivedError: Error?
-        sut.save(items) { error in
-            receivedError = error
-            exp.fulfill()
-        }
-        
         let deletionError = anyNSError()
-        store.completeDeletion(with: deletionError)
         
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedError as NSError?, deletionError)
+        expect(sut, toCompleteWithAnError: deletionError) {
+            store.completeDeletion(with: deletionError)
+        }
     }
     
     func test_save_failsOnInsertError() {
         let (sut, store) = makeSUT()
-        let items = [uniqueItem, uniqueItem]
         let insertionError = anyNSError()
-        let exp = expectation(description: "wait for save completion")
         
-        var receivedError: Error?
-        sut.save(items) { error in
-            receivedError = error
-            exp.fulfill()
+        expect(sut, toCompleteWithAnError: insertionError) {
+            store.compleDeletionSuccessfully()
+            store.completeInsertion(with: insertionError)
         }
-        store.compleDeletionSuccessfully()
-        store.completeInsertion(with: insertionError)
-        
-        wait(for: [exp], timeout: 1.0)
-        XCTAssertEqual(receivedError as NSError?, insertionError)
     }
     
     func test_save_succeedsOnSuccessfulCacheInsertion() {
@@ -164,6 +147,20 @@ class CacheFeedUseCaseTests: XCTestCase {
         
         wait(for: [exp], timeout: 1.0)
         XCTAssertNil(receivedError)
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toCompleteWithAnError error: NSError, when action: @escaping ()->Void) {
+        let exp = expectation(description: "wait for save completion")
+        
+        var receivedError: Error?
+        sut.save([uniqueItem]) { error in
+            receivedError = error
+            exp.fulfill()
+        }
+        action()
+        
+        wait(for: [exp], timeout: 1.0)
+        XCTAssertEqual(receivedError as NSError?, error)
     }
     
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
