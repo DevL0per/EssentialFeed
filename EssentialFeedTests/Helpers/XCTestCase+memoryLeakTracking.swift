@@ -15,4 +15,8 @@ extension XCTestCase {
         }
     }
     
+    func anyNSError() -> NSError {
+        return NSError(domain: "", code: 100)
+    }
+    
 }
