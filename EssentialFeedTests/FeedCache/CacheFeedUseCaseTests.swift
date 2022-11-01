@@ -9,10 +9,10 @@ import XCTest
 import EssentialFeed
 
 class LocalFeedLoader {
-    let store: FeedStore
+    let store: FeedStoreSpy
     let timestamp: ()->(Date)
     
-    init(store: FeedStore, timestamp: @escaping ()->(Date)) {
+    init(store: FeedStoreSpy, timestamp: @escaping ()->(Date)) {
         self.store = store
         self.timestamp = timestamp
     }
@@ -30,7 +30,7 @@ class LocalFeedLoader {
     }
 }
 
-class FeedStore {
+class FeedStoreSpy: FeedStore {
     typealias DeletionCompletion = (Error?)->Void
     typealias InsertionCompletion = (Error?)->Void
     
@@ -75,6 +75,14 @@ class FeedStore {
     }
 }
 
+protocol FeedStore {
+    typealias DeletionCompletion = (Error?)->Void
+    typealias InsertionCompletion = (Error?)->Void
+    
+    func deleteCachedFeed(completion: @escaping DeletionCompletion)
+    func insert(_ items: [FeedItem], timestamp: Date, completion: @escaping InsertionCompletion)
+}
+
 class CacheFeedUseCaseTests: XCTestCase {
     
     func test_init_doesNotDeleteCacheUponCreation() {
@@ -109,7 +117,7 @@ class CacheFeedUseCaseTests: XCTestCase {
         
         store.compleDeletionSuccessfully()
         
-        let insertion = FeedStore.Insertion(items: items, timestamp: timestamp)
+        let insertion = FeedStoreSpy.Insertion(items: items, timestamp: timestamp)
         XCTAssertEqual(store.receivedMessages, [.deleteCacheFeed, .insert(insertion)])
     }
     
@@ -165,8 +173,8 @@ class CacheFeedUseCaseTests: XCTestCase {
     
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
                          file: StaticString = #file,
-                         line: UInt = #line) -> (LocalFeedLoader, FeedStore) {
-        let store = FeedStore()
+                         line: UInt = #line) -> (LocalFeedLoader, FeedStoreSpy) {
+        let store = FeedStoreSpy()
         let sut = LocalFeedLoader(store: store, timestamp: timestamp)
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
