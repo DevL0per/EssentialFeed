@@ -12,15 +12,17 @@ class LocalFeedLoader {
     let store: FeedStoreSpy
     let timestamp: ()->(Date)
     
-    init(store: FeedStoreSpy, timestamp: @escaping ()->(Date)) {
+    init(store: FeedStoreSpy, timestamp: @escaping ()->Date) {
         self.store = store
         self.timestamp = timestamp
     }
     
     func save(_ items: [FeedItem], completion: @escaping (Error?)->()) {
-        store.deleteCachedFeed() { [unowned self] error in
+        store.deleteCachedFeed() { [weak self] error in
+            guard let self = self else { return }
             if error == nil {
-                self.store.insert(items, timestamp: self.timestamp()) { error in
+                self.store.insert(items, timestamp: self.timestamp()) { [weak self] error in
+                    guard let _ = self else { return }
                     completion(error)
                 }
             } else {
@@ -155,6 +157,39 @@ class CacheFeedUseCaseTests: XCTestCase {
         
         wait(for: [exp], timeout: 1.0)
         XCTAssertNil(receivedError)
+    }
+    
+    func test_save_doesNotDeliversDeletionErrorAfterSUTInstanceHasBeenDeallocated() {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, timestamp: Date.init)
+        let deletionError = anyNSError()
+        let items = [uniqueItem, uniqueItem]
+        
+        var receivedResults = [Error?]()
+        sut?.save(items, completion: { error in
+            receivedResults.append(error)
+        })
+        sut = nil
+        store.completeDeletion(with: deletionError)
+        
+        XCTAssertTrue(receivedResults.isEmpty)
+    }
+    
+    func test_save_doesNotDeliversInsertionErrorAfterSUTHasBeenDeallocated() {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, timestamp: Date.init)
+        let insertionError = anyNSError()
+        let items = [uniqueItem, uniqueItem]
+        
+        var receivedResults = [Error?]()
+        sut?.save(items, completion: { error in
+            receivedResults.append(error)
+        })
+        store.compleDeletionSuccessfully()
+        sut = nil
+        store.completeInsertion(with: insertionError)
+        
+        XCTAssertTrue(receivedResults.isEmpty)
     }
     
     private func expect(_ sut: LocalFeedLoader, toCompleteWithAnError error: NSError, when action: @escaping ()->Void) {
