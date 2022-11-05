@@ -13,7 +13,7 @@ class FeedStoreSpy: FeedStore {
     typealias InsertionCompletion = (Error?)->Void
     
     struct Insertion: Equatable {
-        let items: [LocalFeedItem]
+        let items: [LocalFeedImage]
         let timestamp: Date
     }
     enum ReceivedMessage: Equatable {
@@ -30,7 +30,7 @@ class FeedStoreSpy: FeedStore {
         deletionCompletion.append(completion)
     }
     
-    func insert(_ items: [LocalFeedItem], timestamp: Date, completion: @escaping InsertionCompletion) {
+    func insert(_ items: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         let insertion = Insertion(items: items, timestamp: timestamp)
         receivedMessages.append(.insert(insertion))
         insertionCompletion.append(completion)
@@ -83,7 +83,7 @@ class CacheFeedUseCaseTests: XCTestCase {
         let timestamp = Date()
         let (sut, store) = makeSUT(timestamp: {timestamp})
         let items = [uniqueItem, uniqueItem]
-        let localItems = items.map { LocalFeedItem(id: $0.id, description: $0.description, location: $0.location, imageURL: $0.imageURL) }
+        let localItems = items.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         sut.save(items) { _ in }
         
         store.compleDeletionSuccessfully()
@@ -185,9 +185,9 @@ class CacheFeedUseCaseTests: XCTestCase {
         return (sut, store)
     }
     
-    private var uniqueItem: FeedItem {
+    private var uniqueItem: FeedImage {
         let url = URL(string: "http://anyURL.com")!
-        return FeedItem(id: UUID(), description: "any", location: "any", imageURL: url)
+        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
     }
     
 }
