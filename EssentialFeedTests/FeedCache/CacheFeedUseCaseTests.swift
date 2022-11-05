@@ -13,7 +13,7 @@ class FeedStoreSpy: FeedStore {
     typealias InsertionCompletion = (Error?)->Void
     
     struct Insertion: Equatable {
-        let items: [FeedItem]
+        let items: [LocalFeedItem]
         let timestamp: Date
     }
     enum ReceivedMessage: Equatable {
@@ -30,7 +30,7 @@ class FeedStoreSpy: FeedStore {
         deletionCompletion.append(completion)
     }
     
-    func insert(_ items: [FeedItem], timestamp: Date, completion: @escaping InsertionCompletion) {
+    func insert(_ items: [LocalFeedItem], timestamp: Date, completion: @escaping InsertionCompletion) {
         let insertion = Insertion(items: items, timestamp: timestamp)
         receivedMessages.append(.insert(insertion))
         insertionCompletion.append(completion)
@@ -83,11 +83,12 @@ class CacheFeedUseCaseTests: XCTestCase {
         let timestamp = Date()
         let (sut, store) = makeSUT(timestamp: {timestamp})
         let items = [uniqueItem, uniqueItem]
+        let localItems = items.map { LocalFeedItem(id: $0.id, description: $0.description, location: $0.location, imageURL: $0.imageURL) }
         sut.save(items) { _ in }
         
         store.compleDeletionSuccessfully()
         
-        let insertion = FeedStoreSpy.Insertion(items: items, timestamp: timestamp)
+        let insertion = FeedStoreSpy.Insertion(items: localItems, timestamp: timestamp)
         XCTAssertEqual(store.receivedMessages, [.deleteCacheFeed, .insert(insertion)])
     }
     
