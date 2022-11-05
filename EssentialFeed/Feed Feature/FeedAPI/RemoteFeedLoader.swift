@@ -48,14 +48,6 @@ private extension Array where Element == RemoteFeedItem {
                               location: $0.location, imageURL: $0.image) }
     }
 }
-                               
-
-struct RemoteFeedItem: Decodable {
-    let id: UUID
-    let description: String?
-    let location: String?
-    let image: URL
-}
 
 private class FeedItemsMapper {
     
