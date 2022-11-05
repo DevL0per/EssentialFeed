@@ -29,7 +29,12 @@ public final class RemoteFeedLoader: FeedLoader {
             guard let _ = self else { return }
             switch result {
             case .success(let response, let data):
-                completion(FeedItemsMapper.map(response, data))
+                do {
+                    let items = try FeedItemsMapper.map(response, data)
+                    completion(.success(items.toModels()))
+                } catch {
+                    completion(.failure(error))
+                }
             case .failure(_):
                 completion(.failure(RemoteFeedLoader.Error.connectivity))
             }
@@ -37,36 +42,34 @@ public final class RemoteFeedLoader: FeedLoader {
     }
 }
 
-private class FeedItemsMapper {
-    
-    static func map(_ response: HTTPURLResponse, _ data: Data) -> RemoteFeedLoader.Result  {
-        guard response.statusCode == 200 else {
-            return .failure(RemoteFeedLoader.Error.invalidData)
-        }
-        do {
-            let root = try JSONDecoder().decode(Root.self, from: data)
-            return .success(root.items.map { $0.item })
-        } catch {
-            return .failure(RemoteFeedLoader.Error.invalidData)
-        }
+private extension Array where Element == RemoteFeedItem {
+    func toModels() -> [FeedItem] {
+        return map { FeedItem(id: $0.id, description: $0.description,
+                              location: $0.location, imageURL: $0.image) }
     }
 }
+                               
 
-private struct Root: Decodable {
-    let items: [Item]
-}
-
-private struct Item: Decodable {
+struct RemoteFeedItem: Decodable {
     let id: UUID
     let description: String?
     let location: String?
     let image: URL
-    
-    var item: FeedItem {
-        FeedItem(id: id,
-                 description: description,
-                 location: location,
-                 imageURL: image)
-    }
 }
 
+private class FeedItemsMapper {
+    
+    private struct Root: Decodable {
+        let items: [RemoteFeedItem]
+    }
+    
+    private static var OK_200: Int { return 200 }
+    
+    static func map(_ response: HTTPURLResponse, _ data: Data) throws -> [RemoteFeedItem]  {
+        guard response.statusCode == OK_200,
+              let root = try? JSONDecoder().decode(Root.self, from: data) else {
+            throw RemoteFeedLoader.Error.invalidData
+        }
+        return root.items
+    }
+}
