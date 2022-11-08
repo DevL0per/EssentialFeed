@@ -10,7 +10,7 @@ import EssentialFeed
 class FeedStoreSpy: FeedStore {
     typealias DeletionCompletion = (Error?)->Void
     typealias InsertionCompletion = (Error?)->Void
-    typealias RetrivalCompletion = ()->Void
+    typealias RetrivalCompletion = (Error)->Void
     
     struct Insertion: Equatable {
         let items: [LocalFeedImage]
@@ -23,6 +23,7 @@ class FeedStoreSpy: FeedStore {
     }
     var receivedMessages: [ReceivedMessage] = []
     
+    private var retrivalCompletion = [RetrivalCompletion]()
     private var deletionCompletion = [DeletionCompletion]()
     private var insertionCompletion = [InsertionCompletion]()
     
@@ -38,7 +39,12 @@ class FeedStoreSpy: FeedStore {
     }
     
     func retrieve(completion: @escaping RetrivalCompletion) {
+        retrivalCompletion.append(completion)
         receivedMessages.append(.retrieve)
+    }
+    
+    func completeRetrival(with error: Error, at index: Int = 0) {
+        retrivalCompletion[index](error)
     }
     
     func completeDeletion(with error: Error, at index: Int = 0) {

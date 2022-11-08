@@ -17,8 +17,21 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
     
     func test_load_callRetriveCommand() {
         let (sut, store) = makeSUT()
-        sut.load()
+        sut.load { _ in }
         XCTAssertEqual(store.receivedMessages, [.retrieve])
+    }
+    
+    func test_load_failsOnRetrivalError() {
+        let (sut, store) = makeSUT()
+        let error = anyNSError()
+        
+        var receivedErrors = [NSError]()
+        sut.load { receivedError in
+            receivedErrors.append(receivedError as NSError)
+        }
+        store.completeRetrival(with: error)
+        
+        XCTAssertEqual(receivedErrors, [error])
     }
     
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
