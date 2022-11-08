@@ -38,7 +38,7 @@ class FeedStoreSpy: FeedStore {
     }
     
     func retrieve(completion: @escaping RetrivalCompletion) {
-        
+        receivedMessages.append(.retrieve)
     }
     
     func completeDeletion(with error: Error, at index: Int = 0) {
