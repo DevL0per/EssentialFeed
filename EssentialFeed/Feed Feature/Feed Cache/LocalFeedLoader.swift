@@ -40,9 +40,11 @@ public class LocalFeedLoader {
         }
     }
     
+    private let maxCacheAgeInDays: Int = 7
+    
     private func validate(_ timestamp: Date) -> Bool {
         let calendar = Calendar(identifier: .gregorian)
-        guard let maxDate = calendar.date(byAdding: .day, value: -7, to: self.timestamp()) else { return false }
+        guard let maxDate = calendar.date(byAdding: .day, value: -maxCacheAgeInDays, to: self.timestamp()) else { return false }
         return timestamp > maxDate
     }
     
