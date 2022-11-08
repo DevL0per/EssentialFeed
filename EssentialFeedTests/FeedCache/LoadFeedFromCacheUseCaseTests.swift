@@ -42,10 +42,23 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let lessThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: Date())! + 1
+        let lessThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
          
         expect(sut, toCompleteWithResult: .success(feed)) {
             store.completeRetrival(with: localItems, timestamp: lessThanSevenDaysOldTimestamp)
+        }
+    }
+    
+    func test_load_deliversNoCachedItemsOnSevenDaysOldCache() {
+        let today = Date()
+        let (sut, store) = makeSUT(timestamp: {today})
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let moreThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
+         
+        expect(sut, toCompleteWithResult: .success([])) {
+            store.completeRetrival(with: localItems, timestamp: moreThanSevenDaysOldTimestamp)
         }
     }
     
@@ -55,7 +68,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let moreThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: Date())! - 1
+        let moreThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! - 1
          
         expect(sut, toCompleteWithResult: .success([])) {
             store.completeRetrival(with: localItems, timestamp: moreThanSevenDaysOldTimestamp)
