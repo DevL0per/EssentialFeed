@@ -44,22 +44,33 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
     
     func test_load_deliversNoFeedItemsOnEmptyCache() {
         let (sut, store) = makeSUT()
+        expect(sut, toCompleteWithResult: .success([])) {
+            store.completeRetrival()
+        }
+    }
+    
+    func test_load_deliversCachedItemsOnLessThanSevenDaysOldCache() {
+    }
+    
+    private func expect(_ sut: LocalFeedLoader,
+                        toCompleteWithResult expectedResult: FeedLoaderResult,
+                        on action: ()->Void, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "waiting for load completion")
 
-        var receivedItems = [FeedImage]()
         sut.load { result in
-            switch result {
-            case let .success(items):
-                receivedItems = items
-            case .failure:
-                XCTFail("expected succes case, got failure insted")
+            switch (result, expectedResult) {
+            case let (.success(receivedItems), .success(expectedItems)):
+                XCTAssertEqual(receivedItems, expectedItems, file: file, line: line)
+            case let (.failure(receivedError), .failure(expectedError)):
+                XCTAssertEqual(receivedError as NSError?, expectedError as NSError?, file: file, line: line)
+            default:
+                XCTFail("expected \(expectedResult), got \(result) instead", file: file, line: line)
             }
             exp.fulfill()
         }
-        store.completeRetrival()
+        action()
         wait(for: [exp], timeout: 1.0)
 
-        XCTAssertEqual(receivedItems, [])
     }
     
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
