@@ -24,22 +24,9 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
     func test_load_failsOnRetrivalError() {
         let (sut, store) = makeSUT()
         let error = anyNSError()
-        let exp = expectation(description: "waiting for load completion")
-        
-        var receivedErrors = [NSError]()
-        sut.load { receivedResult in
-            switch receivedResult {
-            case .success:
-                XCTFail("expected error case")
-            case .failure(let error):
-                receivedErrors.append(error as NSError)
-            }
-            exp.fulfill()
+        expect(sut, toCompleteWithResult: .failure(error)) {
+            store.completeRetrival(with: error)
         }
-        store.completeRetrival(with: error)
-        wait(for: [exp], timeout: 1.0)
-        
-        XCTAssertEqual(receivedErrors, [error])
     }
     
     func test_load_deliversNoFeedItemsOnEmptyCache() {
@@ -50,6 +37,15 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
     }
     
     func test_load_deliversCachedItemsOnLessThanSevenDaysOldCache() {
+        let (sut, store) = makeSUT()
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let lessThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: Date())! + 1
+         
+        expect(sut, toCompleteWithResult: .success(feed)) {
+            store.completeRetrival(with: localItems, timestamp: lessThanSevenDaysOldTimestamp)
+        }
     }
     
     private func expect(_ sut: LocalFeedLoader,
@@ -81,6 +77,11 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
+    }
+    
+    private var uniqueItem: FeedImage {
+        let url = URL(string: "http://anyURL.com")!
+        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
     }
 
 }

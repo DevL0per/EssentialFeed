@@ -28,7 +28,16 @@ public class LocalFeedLoader {
     }
     
     public func load(completion: @escaping (FeedLoaderResult)->Void) {
-        store.retrieve(completion: completion)
+        store.retrieve { result in
+            switch result {
+            case .empty:
+                completion(.success([]))
+            case let .found(feedItems, _):
+                completion(.success(feedItems.toModel()))
+            case let .failure(error):
+                completion(.failure(error))
+            }
+        }
     }
     
     private func cache(_ items: [FeedImage], with completion: @escaping (Error?)->Void) {
@@ -36,6 +45,12 @@ public class LocalFeedLoader {
             guard let _ = self else { return }
             completion(error)
         }
+    }
+}
+
+private extension Array where Element == LocalFeedImage {
+    func toModel()->[FeedImage] {
+        return map { FeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
     }
 }
 
