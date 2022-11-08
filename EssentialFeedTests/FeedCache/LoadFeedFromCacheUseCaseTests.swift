@@ -11,7 +11,8 @@ import EssentialFeed
 final class LoadFeedFromCacheUseCaseTests: XCTestCase {
 
     func test_init_doesNotRetrieveFeedUpouCreation() {
-        let sut = makeSUT()
+        let (_, store) = makeSUT()
+        XCTAssertEqual(store.receivedMessages, [])
     }
     
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
