@@ -32,7 +32,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
     func test_load_deliversNoFeedItemsOnEmptyCache() {
         let (sut, store) = makeSUT()
         expect(sut, toCompleteWithResult: .success([])) {
-            store.completeRetrival()
+            store.completeRetrivalWithAnEmptyCache()
         }
     }
     
@@ -79,11 +79,19 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let (sut, store) = makeSUT()
         let error = anyNSError()
         
-        expect(sut, toCompleteWithResult: .failure(error)) {
-            store.completeRetrival(with: error)
-        }
+        sut.load { _ in }
+        store.completeRetrival(with: error)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
+    }
+    
+    func test_load_doesNotDeletesCachedItemsOnEmptyCache() {
+        let (sut, store) = makeSUT()
+        
+        sut.load { _ in }
+        store.completeRetrivalWithAnEmptyCache()
+        
+        XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
     
     private func expect(_ sut: LocalFeedLoader,
