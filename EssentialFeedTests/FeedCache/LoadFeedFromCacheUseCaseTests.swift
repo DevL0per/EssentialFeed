@@ -136,6 +136,17 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
     
+    func test_load_doesNotDeliverItemsAfterSUTHasBeenDeallocated() {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, timestamp: { Date() })
+        
+        sut?.load { result in
+            XCTFail("should not deliver any result after sut instance has been deallocated")
+        }
+        sut = nil
+        store.completeRetrivalWithAnEmptyCache()
+    }
+    
     private func expect(_ sut: LocalFeedLoader,
                         toCompleteWithResult expectedResult: FeedLoaderResult,
                         on action: ()->Void, file: StaticString = #file, line: UInt = #line) {
