@@ -55,10 +55,10 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let moreThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
+        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
          
         expect(sut, toCompleteWithResult: .success([])) {
-            store.completeRetrival(with: localItems, timestamp: moreThanSevenDaysOldTimestamp)
+            store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
         }
     }
     
@@ -90,6 +90,48 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         
         sut.load { _ in }
         store.completeRetrivalWithAnEmptyCache()
+        
+        XCTAssertEqual(store.receivedMessages, [.retrieve])
+    }
+    
+    func test_load_deleteCachedItemsOnSevenDaysOldCache() {
+        let today = Date()
+        let (sut, store) = makeSUT(timestamp: { today })
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
+        
+        sut.load { _ in }
+        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        
+        XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
+    }
+    
+    func test_load_deleteCachedItemsOnMoreThanSevenDaysOldCache() {
+        let today = Date()
+        let (sut, store) = makeSUT(timestamp: { today })
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! - 1
+        
+        sut.load { _ in }
+        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        
+        XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
+    }
+    
+    func test_load_doesNotDeleteCachedItemsOnLessThanSevenDaysOldCache() {
+        let today = Date()
+        let (sut, store) = makeSUT(timestamp: { today })
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
+        
+        sut.load { _ in }
+        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
