@@ -100,7 +100,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
+        let sevenDaysOldTimestamp = today.adding(days: -7)
         
         sut.load { _ in }
         store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
@@ -114,7 +114,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! - 1
+        let sevenDaysOldTimestamp = today.adding(days: -7).adding(seconds: -1)
         
         sut.load { _ in }
         store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
@@ -128,7 +128,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
+        let sevenDaysOldTimestamp = today.adding(days: -7).adding(seconds: 1)
         
         sut.load { _ in }
         store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
