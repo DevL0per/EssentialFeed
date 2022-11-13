@@ -40,7 +40,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
+        let sevenDaysOldTimestamp = today.adding(days: -7) + 1
         
         sut.validateCache()
         store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
@@ -56,11 +56,6 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
-    }
-    
-    private var uniqueItem: FeedImage {
-        let url = URL(string: "http://anyURL.com")!
-        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
     }
     
 }

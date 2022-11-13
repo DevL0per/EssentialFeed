@@ -42,7 +42,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let lessThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
+        let lessThanSevenDaysOldTimestamp = today.adding(days: -7) + 1
          
         expect(sut, toCompleteWithResult: .success(feed)) {
             store.completeRetrival(with: localItems, timestamp: lessThanSevenDaysOldTimestamp)
@@ -55,7 +55,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)!
+        let sevenDaysOldTimestamp = today.adding(days: -7)
          
         expect(sut, toCompleteWithResult: .success([])) {
             store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
@@ -68,7 +68,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let moreThanSevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! - 1
+        let moreThanSevenDaysOldTimestamp = today.adding(days: -7) - 1
          
         expect(sut, toCompleteWithResult: .success([])) {
             store.completeRetrival(with: localItems, timestamp: moreThanSevenDaysOldTimestamp)
@@ -176,11 +176,6 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
-    }
-    
-    private var uniqueItem: FeedImage {
-        let url = URL(string: "http://anyURL.com")!
-        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
     }
 
 }

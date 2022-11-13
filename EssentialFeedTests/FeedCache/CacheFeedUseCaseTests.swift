@@ -139,10 +139,4 @@ class CacheFeedUseCaseTests: XCTestCase {
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
     }
-    
-    private var uniqueItem: FeedImage {
-        let url = URL(string: "http://anyURL.com")!
-        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
-    }
-    
 }
