@@ -16,6 +16,19 @@ public class LocalFeedLoader {
         self.timestamp = timestamp
     }
     
+    private var maxCacheAgeInDays: Int {
+        7
+    }
+    
+    private func validate(_ timestamp: Date) -> Bool {
+        let calendar = Calendar(identifier: .gregorian)
+        guard let maxDate = calendar.date(byAdding: .day, value: -maxCacheAgeInDays, to: self.timestamp()) else { return false }
+        return timestamp > maxDate
+    }
+
+}
+
+extension LocalFeedLoader {
     public func validateCache() {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
@@ -27,10 +40,11 @@ public class LocalFeedLoader {
             default:
                 break
             }
-            
         }
     }
-    
+}
+
+extension LocalFeedLoader {
     public func save(_ items: [FeedImage], completion: @escaping (Error?)->()) {
         store.deleteCachedFeed() { [weak self] error in
             guard let self = self else { return }
@@ -42,6 +56,15 @@ public class LocalFeedLoader {
         }
     }
     
+    private func cache(_ items: [FeedImage], with completion: @escaping (Error?)->Void) {
+        store.insert(items.toLocal(), timestamp: self.timestamp()) { [weak self] error in
+            guard let _ = self else { return }
+            completion(error)
+        }
+    }
+}
+
+extension LocalFeedLoader {
     public func load(completion: @escaping (FeedLoaderResult)->Void) {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
@@ -53,21 +76,6 @@ public class LocalFeedLoader {
             case .found, .empty:
                 completion(.success([]))
             }
-        }
-    }
-    
-    private let maxCacheAgeInDays: Int = 7
-    
-    private func validate(_ timestamp: Date) -> Bool {
-        let calendar = Calendar(identifier: .gregorian)
-        guard let maxDate = calendar.date(byAdding: .day, value: -maxCacheAgeInDays, to: self.timestamp()) else { return false }
-        return timestamp > maxDate
-    }
-    
-    private func cache(_ items: [FeedImage], with completion: @escaping (Error?)->Void) {
-        store.insert(items.toLocal(), timestamp: self.timestamp()) { [weak self] error in
-            guard let _ = self else { return }
-            completion(error)
         }
     }
 }
