@@ -34,6 +34,20 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
     
+    func test_validateCache_doesNotDeleteLessThanSevenDaysOldCache() {
+        let today = Date()
+        let (sut, store) = makeSUT(timestamp: { today })
+        let feed = [uniqueItem, uniqueItem]
+        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        
+        let sevenDaysOldTimestamp = Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: today)! + 1
+        
+        sut.validateCache()
+        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        
+        XCTAssertEqual(store.receivedMessages, [.retrieve])
+    }
+    
     private func makeSUT(timestamp: @escaping ()->(Date) = { Date() },
                          file: StaticString = #file,
                          line: UInt = #line) -> (LocalFeedLoader, FeedStoreSpy) {
@@ -43,4 +57,10 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         trackForMemoryLeaks(store, file: file, line: line)
         return (sut, store)
     }
+    
+    private var uniqueItem: FeedImage {
+        let url = URL(string: "http://anyURL.com")!
+        return FeedImage(id: UUID(), description: "any", location: "any", url: url)
+    }
+    
 }
