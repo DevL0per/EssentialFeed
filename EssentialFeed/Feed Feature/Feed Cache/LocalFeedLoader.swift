@@ -16,6 +16,11 @@ public class LocalFeedLoader {
         self.timestamp = timestamp
     }
     
+    public func validateCache() {
+        store.retrieve(completion: {_ in})
+        store.deleteCachedFeed(completion: {_ in})
+    }
+    
     public func save(_ items: [FeedImage], completion: @escaping (Error?)->()) {
         store.deleteCachedFeed() { [weak self] error in
             guard let self = self else { return }
