@@ -34,44 +34,44 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
     
-    func test_validateCache_doesNotDeleteLessThanSevenDaysOldCache() {
+    func test_validateCache_doesNotDeleteLessThanMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = today.adding(days: -7).adding(seconds: 1)
+        let maxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: 1)
         
         sut.validateCache()
-        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve])
     }
     
-    func test_validateCache_deletesSevenDaysOldCache() {
+    func test_validateCache_deletesMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = today.adding(days: -7)
+        let maxAgeOldTimestamp = today.minusFeedCacheMaxAge()
         
         sut.validateCache()
-        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
     }
     
-    func test_validateCache_deletesMoreThanSevenDaysOldCache() {
+    func test_validateCache_deletesMoreThanMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = today.adding(days: -7).adding(seconds: -1)
+        let maxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
         sut.validateCache()
-        store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+        store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
     }

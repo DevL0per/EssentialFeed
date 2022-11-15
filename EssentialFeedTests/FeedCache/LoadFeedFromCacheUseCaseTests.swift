@@ -36,42 +36,42 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         }
     }
     
-    func test_load_deliversCachedItemsOnLessThanSevenDaysOldCache() {
+    func test_load_deliversCachedItemsOnLessThanMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let lessThanSevenDaysOldTimestamp = today.adding(days: -7) + 1
+        let lessThanMaxDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: 1)
          
         expect(sut, toCompleteWithResult: .success(feed)) {
-            store.completeRetrival(with: localItems, timestamp: lessThanSevenDaysOldTimestamp)
+            store.completeRetrival(with: localItems, timestamp: lessThanMaxDaysOldTimestamp)
         }
     }
     
-    func test_load_deliversNoCachedItemsOnSevenDaysOldCache() {
+    func test_load_deliversNoCachedItemsOnMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let sevenDaysOldTimestamp = today.adding(days: -7)
+        let maxAgeOldTimestamp = today.minusFeedCacheMaxAge()
          
         expect(sut, toCompleteWithResult: .success([])) {
-            store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
+            store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         }
     }
     
-    func test_load_deliversNoCachedItemsOnMoreThanSevenDaysOldCache() {
+    func test_load_deliversNoCachedItemsOnMoreThanMaxAgeOldCache() {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
         let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
         
-        let moreThanSevenDaysOldTimestamp = today.adding(days: -7) - 1
+        let moreThanMaxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
          
         expect(sut, toCompleteWithResult: .success([])) {
-            store.completeRetrival(with: localItems, timestamp: moreThanSevenDaysOldTimestamp)
+            store.completeRetrival(with: localItems, timestamp: moreThanMaxAgeOldTimestamp)
         }
     }
     
