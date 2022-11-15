@@ -8,19 +8,14 @@
 import Foundation
 
 private final class FeedCachePolicy {
-    let currentDate: ()->Date
-    
-    init(timestamp: @escaping () -> Date) {
-        self.currentDate = timestamp
-    }
     
     private var maxCacheAgeInDays: Int {
         7
     }
     
-    func validate(_ timestamp: Date) -> Bool {
+    func validate(_ timestamp: Date, against date: Date) -> Bool {
         let calendar = Calendar(identifier: .gregorian)
-        guard let maxDate = calendar.date(byAdding: .day, value: -maxCacheAgeInDays, to: self.currentDate()) else { return false }
+        guard let maxDate = calendar.date(byAdding: .day, value: -maxCacheAgeInDays, to: date) else { return false }
         return timestamp > maxDate
     }
 }
@@ -34,7 +29,7 @@ public class LocalFeedLoader {
     public init(store: FeedStore, timestamp: @escaping ()->Date) {
         self.store = store
         self.currentDate = timestamp
-        self.feedCachePolicy = FeedCachePolicy(timestamp: timestamp)
+        self.feedCachePolicy = FeedCachePolicy()
     }
 
 }
@@ -44,7 +39,7 @@ extension LocalFeedLoader {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case let .found(_, timestamp) where !self.feedCachePolicy.validate(timestamp):
+            case let .found(_, timestamp) where !self.feedCachePolicy.validate(timestamp, against: self.currentDate()):
                 self.store.deleteCachedFeed(completion: {_ in})
             case .failure:
                 self.store.deleteCachedFeed(completion: {_ in})
@@ -80,7 +75,7 @@ extension LocalFeedLoader: FeedLoader {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case let .found(feedItems, timestamp) where self.feedCachePolicy.validate(timestamp):
+            case let .found(feedItems, timestamp) where self.feedCachePolicy.validate(timestamp, against: self.currentDate()):
                 completion(.success(feedItems.toModel()))
             case let .failure(error):
                 completion(.failure(error))
