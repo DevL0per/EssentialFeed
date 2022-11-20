@@ -42,11 +42,15 @@ class CodableFeedStore {
     }
     
     func insert(_ items: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-        let encoder = JSONEncoder()
-        let codableFeedImages = items.map(CodableFeedImage.init)
-        let encoded = try! encoder.encode(Cache(feed: codableFeedImages, timestamp: timestamp))
-        try! encoded.write(to: storeURL)
-        completion(nil)
+        do {
+            let encoder = JSONEncoder()
+            let codableFeedImages = items.map(CodableFeedImage.init)
+            let encoded = try encoder.encode(Cache(feed: codableFeedImages, timestamp: timestamp))
+            try encoded.write(to: storeURL)
+            completion(nil)
+        } catch {
+            completion(error)
+        }
     }
     
     func retrieve(completion: @escaping RetrivalCompletion) {
@@ -132,6 +136,32 @@ class CodableFeedStoreTests: XCTestCase {
         expect(sut, toRetrieve: .failure(anyNSError()))
     }
     
+    func test_insert_overridesPreviouslyInsertedCache() {
+        let sut = makeSUT()
+        let oldFeed = [uniqueItem, uniqueItem].map { mapFeedItemToLocalFeedImage($0) }
+        let newFeed = [uniqueItem, uniqueItem].map { mapFeedItemToLocalFeedImage($0) }
+        let timestamp = Date()
+        
+        let firstInsertionError = insert((oldFeed, timestamp), to: sut)
+        XCTAssertNil(firstInsertionError)
+        
+        let latestInsertionError = insert((newFeed, timestamp), to: sut)
+        XCTAssertNil(latestInsertionError)
+        
+        expect(sut, toRetrieve: .found(feed: newFeed, timestamp: timestamp))
+    }
+    
+    func test_insert_deliversAnErrorOnInsertionError() {
+        let invalidURL = URL(string: "invalid:://store-url")!
+        let sut = makeSUT(storeURL: invalidURL)
+        let feed = [uniqueItem, uniqueItem].map { mapFeedItemToLocalFeedImage($0) }
+        let timestamp = Date()
+        
+        let receivedError = insert((feed, timestamp), to: sut)
+        
+        XCTAssertNotNil(receivedError)
+    }
+    
     private func setupAnEmptyStoreState() {
         deleteStoreArtifacts()
     }
@@ -149,13 +179,17 @@ class CodableFeedStoreTests: XCTestCase {
         in: .userDomainMask).first!.appendingPathComponent("CodableFeedStoreTests.store")
     }
     
-    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) {
+    @discardableResult
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) -> Error? {
         let expectation = expectation(description: "wait for cache retrieval")
         
+        var receivedError: Error?
         sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
             expectation.fulfill()
+            receivedError = insertionError
         }
         wait(for: [expectation], timeout: 1.0)
+        return receivedError
     }
     
     private func expect(_ sut: CodableFeedStore, toRetrieve expectedResult: RetriveCachedFeedResult,
