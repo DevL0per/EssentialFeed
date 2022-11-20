@@ -16,10 +16,21 @@ class CodableFeedStore {
                            in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
     
     private struct CodableFeedImage: Codable {
-        public let id: UUID
-        public let description: String?
-        public let location: String?
-        public let url: URL
+        let id: UUID
+        let description: String?
+        let location: String?
+        let url: URL
+        
+        init(_ localFeedImage: LocalFeedImage) {
+            id = localFeedImage.id
+            description = localFeedImage.description
+            location = localFeedImage.location
+            url = localFeedImage.url
+        }
+        
+        var local: LocalFeedImage {
+            LocalFeedImage(id: id, description: description, location: location, url: url)
+        }
     }
     
     private struct Cache: Codable {
@@ -29,7 +40,7 @@ class CodableFeedStore {
     
     func insert(_ items: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         let encoder = JSONEncoder()
-        let codableFeedImages = items.map { toCodableFeedImage($0) }
+        let codableFeedImages = items.map(CodableFeedImage.init)
         let encoded = try! encoder.encode(Cache(feed: codableFeedImages, timestamp: timestamp))
         try! encoded.write(to: storeURL)
         completion(nil)
@@ -43,17 +54,10 @@ class CodableFeedStore {
         }
         let decoded = try! decoder.decode(Cache.self, from: data)
         
-        let feed = decoded.feed.map { toLocalFeedImage($0) }
+        let feed = decoded.feed.map { $0.local }
         completion(.found(feed: feed, timestamp: decoded.timestamp))
     }
     
-    private func toCodableFeedImage(_ local: LocalFeedImage) -> CodableFeedImage {
-        CodableFeedImage(id: local.id, description: local.description, location: local.location, url: local.url)
-    }
-    
-    private func toLocalFeedImage(_ codable: CodableFeedImage) -> LocalFeedImage {
-        LocalFeedImage(id: codable.id, description: codable.description, location: codable.location, url: codable.url)
-    }
 }
 
 class CodableFeedStoreTests: XCTestCase {
