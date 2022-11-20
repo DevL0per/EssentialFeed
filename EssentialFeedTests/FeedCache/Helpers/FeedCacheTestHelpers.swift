@@ -10,19 +10,19 @@ import EssentialFeed
 
 extension Date {
     
-    private var maxAgeInDays: Int {
+    private var feedCacheMaxAgeInDays: Int {
         return 7
     }
     
     func minusFeedCacheMaxAge() -> Date {
-        adding(days: -maxAgeInDays)
+        adding(days: -feedCacheMaxAgeInDays)
     }
     
-    func adding(days: Int) -> Date {
+    private func adding(days: Int) -> Date {
         Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: self)!
     }
     
-    func adding(seconds: TimeInterval) -> Date {
+    private func adding(seconds: TimeInterval) -> Date {
         self + seconds
     }
     
