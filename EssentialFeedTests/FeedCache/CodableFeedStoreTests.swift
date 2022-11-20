@@ -12,8 +12,7 @@ class CodableFeedStore {
     typealias RetrivalCompletion = (RetriveCachedFeedResult)->Void
     typealias InsertionCompletion = (Error?)->Void
     
-    private let storeURL = FileManager.default.urls(for: .documentDirectory,
-                           in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+    private let storeURL: URL
     
     private struct CodableFeedImage: Codable {
         let id: UUID
@@ -36,6 +35,10 @@ class CodableFeedStore {
     private struct Cache: Codable {
         let feed: [CodableFeedImage]
         let timestamp: Date
+    }
+    
+    init(storeURL: URL) {
+        self.storeURL = storeURL
     }
     
     func insert(_ items: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
@@ -118,7 +121,9 @@ class CodableFeedStoreTests: XCTestCase {
     }
     
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> CodableFeedStore {
-        let sut = CodableFeedStore()
+        let url = FileManager.default.urls(for: .documentDirectory,
+                  in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+        let sut = CodableFeedStore(storeURL: url)
         trackForMemoryLeaks(sut, file: file, line: line)
         return sut
     }
