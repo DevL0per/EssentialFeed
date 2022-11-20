@@ -40,7 +40,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let lessThanMaxDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: 1)
          
@@ -53,7 +53,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge()
          
@@ -66,7 +66,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: {today})
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let moreThanMaxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
          
@@ -98,7 +98,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let sevenDaysOldTimestamp = today.minusFeedCacheMaxAge()
         
@@ -112,7 +112,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let sevenDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
@@ -126,7 +126,7 @@ final class LoadFeedFromCacheUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let sevenDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: 1)
         

@@ -52,7 +52,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge()
         
@@ -66,7 +66,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         let today = Date()
         let (sut, store) = makeSUT(timestamp: { today })
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
@@ -81,7 +81,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         var sut: LocalFeedLoader? = LocalFeedLoader(store: store, timestamp: { Date() })
         let today = Date()
         let feed = [uniqueItem, uniqueItem]
-        let localItems = feed.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
+        let localItems = feed.map { mapFeedItemToLocalFeedImage($0) }
         
         let sevenDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
