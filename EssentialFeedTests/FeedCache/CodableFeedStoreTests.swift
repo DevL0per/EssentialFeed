@@ -11,6 +11,7 @@ import EssentialFeed
 class CodableFeedStore {
     typealias RetrivalCompletion = (RetriveCachedFeedResult)->Void
     typealias InsertionCompletion = (Error?)->Void
+    typealias DeletionCompletion = (Error?)->Void
     
     private let storeURL: URL
     
@@ -69,6 +70,9 @@ class CodableFeedStore {
         
     }
     
+    func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+        completion(nil)
+    }
 }
 
 class CodableFeedStoreTests: XCTestCase {
@@ -162,6 +166,15 @@ class CodableFeedStoreTests: XCTestCase {
         XCTAssertNotNil(receivedError)
     }
     
+    func test_delete_doesNothingOnEmptyCache() {
+        let sut = makeSUT()
+        
+        let receivedError = delete(from: sut)
+        XCTAssertNil(receivedError)
+        
+        expect(sut, toRetrieve: .empty)
+    }
+    
     private func setupAnEmptyStoreState() {
         deleteStoreArtifacts()
     }
@@ -177,6 +190,19 @@ class CodableFeedStoreTests: XCTestCase {
     private func testStoreURL() -> URL {
         FileManager.default.urls(for: .documentDirectory,
         in: .userDomainMask).first!.appendingPathComponent("CodableFeedStoreTests.store")
+    }
+    
+    @discardableResult
+    private func delete(from sut: CodableFeedStore) -> Error? {
+        let exp = expectation(description: "wait for cache deletion")
+        
+        var receivedError: Error?
+        sut.deleteCachedFeed { error in
+            receivedError = error
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+        return receivedError
     }
     
     @discardableResult
