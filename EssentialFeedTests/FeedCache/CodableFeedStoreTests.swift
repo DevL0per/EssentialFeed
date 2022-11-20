@@ -55,10 +55,14 @@ class CodableFeedStore {
             completion(.empty)
             return
         }
-        let decoded = try! decoder.decode(Cache.self, from: data)
+        do {
+            let decoded = try decoder.decode(Cache.self, from: data)
+            let feed = decoded.feed.map { $0.local }
+            completion(.found(feed: feed, timestamp: decoded.timestamp))
+        } catch {
+            completion(.failure(error))
+        }
         
-        let feed = decoded.feed.map { $0.local }
-        completion(.found(feed: feed, timestamp: decoded.timestamp))
     }
     
 }
@@ -88,7 +92,7 @@ class CodableFeedStoreTests: XCTestCase {
         expect(sut, toRetrieve: .empty)
     }
     
-    func test_retriveAfterInsertingToEmptyCache_deliversInsertedValues() {
+    func test_retrive_deliversFoundValuesOnNonEmptyCache() {
         let sut = makeSUT()
         let feed = [uniqueItem, uniqueItem].map { mapFeedItemToLocalFeedImage($0) }
         let timestamp = Date()
@@ -107,6 +111,14 @@ class CodableFeedStoreTests: XCTestCase {
         
         expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
         expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
+    }
+    
+    func test_retrieve_deliversFailureOnRetrivalError() {
+        let sut = makeSUT()
+        
+        try! "invalid data".write(to: storeURL(), atomically: false, encoding: .utf8)
+        
+        expect(sut, toRetrieve: .failure(anyNSError()))
     }
     
     private func setupAnEmptyStoreState() {
@@ -147,6 +159,8 @@ class CodableFeedStoreTests: XCTestCase {
                       .found(expectedFeed, expectedTimestamp)):
                 XCTAssertEqual(retrievedFeed, expectedFeed)
                 XCTAssertEqual(retrievedTimestamp, expectedTimestamp)
+            case (.failure, .failure):
+                break
             default:
                 XCTFail("Expected \(expectedResult) result, got \(result) instead", file: file, line: line)
             }
