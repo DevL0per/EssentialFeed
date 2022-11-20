@@ -92,6 +92,25 @@ class CodableFeedStoreTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
     }
     
+    func test_retrieve_hasNoSideEffectsOnEmptyCache() {
+        let sut = makeSUT()
+        let expectation = expectation(description: "wait for cache retrieval")
+        
+        sut.retrieve { firstResult in
+            sut.retrieve { secondResult in
+                switch (firstResult, secondResult) {
+                case (.empty, .empty):
+                    break
+                default:
+                    XCTFail("Expected empty result, got \(firstResult) and \(secondResult) instead")
+                }
+                expectation.fulfill()
+            }
+        }
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
     func test_retriveAfterInsertingToEmptyCache_deliversInsertedValues() {
         let sut = makeSUT()
         let expectation = expectation(description: "wait for cache retrieval")
@@ -108,6 +127,35 @@ class CodableFeedStoreTests: XCTestCase {
                     XCTFail("Expected fount result with \(feed), got \(retrivalResult) instead")
                 }
                 expectation.fulfill()
+            }
+        }
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func test_retrieve_hasNoSideEffectsOnNonEmptyCache() {
+        let sut = makeSUT()
+        let expectation = expectation(description: "wait for cache retrieval")
+        
+        let feed = [uniqueItem, uniqueItem].map { mapFeedItemToLocalFeedImage($0) }
+        let timestamp = Date()
+        
+        sut.insert(feed, timestamp: timestamp) { insertionError in
+            sut.retrieve { firstResult in
+                sut.retrieve { secondResult in
+                    switch (firstResult, secondResult) {
+                    case let (.found(firstFoundFeed, firstFoundTimestamp),
+                              .found(secondFoundFeed, secondFoundtamp)):
+                        XCTAssertEqual(firstFoundFeed, feed)
+                        XCTAssertEqual(firstFoundTimestamp, timestamp)
+                        
+                        XCTAssertEqual(secondFoundFeed, feed)
+                        XCTAssertEqual(secondFoundtamp, timestamp)
+                    default:
+                        XCTFail("Expected empty result, got \(firstResult) and \(secondResult) instead")
+                    }
+                    expectation.fulfill()
+                }
             }
         }
         
