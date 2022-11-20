@@ -8,11 +8,7 @@
 import XCTest
 import EssentialFeed
 
-class CodableFeedStore {
-    typealias RetrivalCompletion = (RetriveCachedFeedResult)->Void
-    typealias InsertionCompletion = (Error?)->Void
-    typealias DeletionCompletion = (Error?)->Void
-    
+class CodableFeedStore: FeedStore {    
     private let storeURL: URL
     
     private struct CodableFeedImage: Codable {
