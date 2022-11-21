@@ -8,8 +8,6 @@
 import XCTest
 import EssentialFeed
 
-
-
 class CodableFeedStoreTests: XCTestCase {
     
     override func setUpWithError() throws {
@@ -128,6 +126,36 @@ class CodableFeedStoreTests: XCTestCase {
         
         let receivedError = delete(from: sut)
         XCTAssertNotNil(receivedError)
+    }
+    
+    func test_storeSideEffects_runSerially() {
+        let sut = makeSUT()
+        let today = Date()
+        var completedOperationsInOrder: [XCTestExpectation] = []
+        let item = mapFeedItemToLocalFeedImage(uniqueItem)
+        
+        let op1 = expectation(description: "Operation 1")
+        sut.insert([item], timestamp: today) { _ in
+            completedOperationsInOrder.append(op1)
+            op1.fulfill()
+        }
+        
+        let op2 = expectation(description: "Operation 2")
+        sut.deleteCachedFeed() { _ in
+            completedOperationsInOrder.append(op2)
+            op2.fulfill()
+        }
+        
+        let op3 = expectation(description: "Operation 3")
+        sut.insert([item], timestamp: today) { _ in
+            completedOperationsInOrder.append(op3)
+            op3.fulfill()
+        }
+        
+        waitForExpectations(timeout: 5.0)
+        
+        XCTAssertEqual(completedOperationsInOrder, [op1, op2, op3])
+        
     }
     
     private func cachesDirectory() -> URL {
