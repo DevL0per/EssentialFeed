@@ -18,8 +18,7 @@ public class CoreDataFeedStore: FeedStore {
     }
     
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-        let context = context
-        context.perform {
+        perform { context in
             do {
                 try ManagedCache.find(in: context).map(context.delete).map(context.save)
                 completion(nil)
@@ -31,8 +30,7 @@ public class CoreDataFeedStore: FeedStore {
     }
     
     public func insert(_ items: [EssentialFeed.LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-        let context = context
-        context.perform {
+        perform { context in
             do {
                 let managedCache = try ManagedCache.newUniqeInstance(in: context)
                 managedCache.timestamp = timestamp
@@ -48,8 +46,7 @@ public class CoreDataFeedStore: FeedStore {
     }
     
     public func retrieve(completion: @escaping RetrivalCompletion) {
-        let context = context
-        context.perform {
+        perform { context in
             do {
                 if let cache = try ManagedCache.find(in: context) {
                     completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
@@ -60,6 +57,11 @@ public class CoreDataFeedStore: FeedStore {
                 completion(.failure(error))
             }
         }
+    }
+    
+    private func perform(_ action: @escaping (NSManagedObjectContext)->Void) {
+        let context = context
+        context.perform { action(context) }
     }
     
 }
