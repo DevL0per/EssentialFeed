@@ -66,40 +66,6 @@ public class CoreDataFeedStore: FeedStore {
     
 }
 
-@objc(ManagedFeedImage)
-private class ManagedFeedImage: NSManagedObject, Identifiable {
-    @NSManaged var id: UUID
-    @NSManaged var imageDescription: String?
-    @NSManaged var location: String?
-    @NSManaged var url: URL
-    @NSManaged var cache: ManagedCache
-    
-    var local: LocalFeedImage {
-        return LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
-    }
-}
-
-@objc(ManagedCache)
-private class ManagedCache: NSManagedObject, Identifiable {
-    @NSManaged public var timestamp: Date
-    @NSManaged public var feed: NSOrderedSet
-    
-    static func find(in context: NSManagedObjectContext) throws -> ManagedCache? {
-        let request = ManagedCache.fetchRequest()
-        request.returnsObjectsAsFaults = true
-        return try context.fetch(request).first as? ManagedCache
-    }
-    
-    static func newUniqeInstance(in context: NSManagedObjectContext) throws -> ManagedCache {
-        try find(in: context).map(context.delete)
-        return ManagedCache(context: context)
-    }
-    
-    var localFeed: [LocalFeedImage] {
-        return feed.compactMap { ($0 as? ManagedFeedImage)?.local }
-    }
-}
-
 private extension Array where Element == EssentialFeed.LocalFeedImage {
     func toManagedObjects(context: NSManagedObjectContext) -> [ManagedFeedImage] {
         map {
