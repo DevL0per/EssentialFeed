@@ -11,7 +11,9 @@ import CoreData
 class ManagedCache: NSManagedObject, Identifiable {
     @NSManaged public var timestamp: Date
     @NSManaged public var feed: NSOrderedSet
-    
+}
+
+extension ManagedCache {
     static func find(in context: NSManagedObjectContext) throws -> ManagedCache? {
         let request = ManagedCache.fetchRequest()
         request.returnsObjectsAsFaults = true
