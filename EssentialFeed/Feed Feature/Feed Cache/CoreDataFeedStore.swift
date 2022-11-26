@@ -18,12 +18,21 @@ public class CoreDataFeedStore: FeedStore {
     }
     
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-        
+        let context = context
+        context.perform {
+            do {
+                try ManagedCache.find(in: context).map(context.delete).map(context.save)
+                completion(nil)
+            } catch {
+                completion(error)
+            }
+            
+        }
     }
     
     public func insert(_ items: [EssentialFeed.LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         let context = context
-        context.performAndWait {
+        context.perform {
             do {
                 let managedCache = try ManagedCache.newUniqeInstance(in: context)
                 managedCache.timestamp = timestamp
@@ -41,19 +50,12 @@ public class CoreDataFeedStore: FeedStore {
     public func retrieve(completion: @escaping RetrivalCompletion) {
         let context = context
         context.perform {
-            let fetchRequest = ManagedCache.fetchRequest()
-            fetchRequest.returnsObjectsAsFaults = true
             do {
-                let fetchResult = try context.fetch(fetchRequest)
-                guard let feedCache = fetchResult.first as? ManagedCache else {
+                if let cache = try ManagedCache.find(in: context) {
+                    completion(.found(feed: cache.localFeed, timestamp: cache.timestamp))
+                } else {
                     completion(.empty)
-                    return
                 }
-                guard let feedImages = feedCache.feed.array as? [ManagedFeedImage] else {
-                    completion(.empty)
-                    return
-                }
-                completion(.found(feed: feedImages.toLocalFeedImages(), timestamp: feedCache.timestamp))
             } catch {
                 completion(.failure(error))
             }
@@ -100,6 +102,10 @@ private class ManagedFeedImage: NSManagedObject, Identifiable {
     @NSManaged var location: String?
     @NSManaged var url: URL
     @NSManaged var cache: ManagedCache
+    
+    var local: LocalFeedImage {
+        return LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
+    }
 }
 
 @objc(ManagedCache)
@@ -109,13 +115,17 @@ private class ManagedCache: NSManagedObject, Identifiable {
     
     static func find(in context: NSManagedObjectContext) throws -> ManagedCache? {
         let request = ManagedCache.fetchRequest()
-        request.returnsObjectsAsFaults = false
+        request.returnsObjectsAsFaults = true
         return try context.fetch(request).first as? ManagedCache
     }
     
     static func newUniqeInstance(in context: NSManagedObjectContext) throws -> ManagedCache {
         try find(in: context).map(context.delete)
         return ManagedCache(context: context)
+    }
+    
+    var localFeed: [LocalFeedImage] {
+        return feed.compactMap { ($0 as? ManagedFeedImage)?.local }
     }
 }
 
@@ -128,17 +138,6 @@ private extension Array where Element == EssentialFeed.LocalFeedImage {
             managedFeedImage.location = $0.location
             managedFeedImage.url = $0.url
             return managedFeedImage
-        }
-    }
-}
-
-private extension Array where Element == ManagedFeedImage {
-    func toLocalFeedImages() -> [EssentialFeed.LocalFeedImage] {
-        map {
-            return EssentialFeed.LocalFeedImage(id: $0.id,
-                                                description: $0.imageDescription,
-                                                location: $0.location,
-                                                url: $0.url)
         }
     }
 }
