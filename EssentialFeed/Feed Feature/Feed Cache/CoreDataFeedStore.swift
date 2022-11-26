@@ -8,7 +8,7 @@
 import CoreData
 
 public class CoreDataFeedStore: FeedStore {
-    
+        
     private let container: NSPersistentContainer
     private let context: NSManagedObjectContext
     
@@ -25,7 +25,7 @@ public class CoreDataFeedStore: FeedStore {
         let context = context
         context.performAndWait {
             do {
-                let managedCache = ManagedCache(context: context)
+                let managedCache = try ManagedCache.newUniqeInstance(in: context)
                 managedCache.timestamp = timestamp
                 managedCache.feed = NSOrderedSet(array: items.toManagedObjects(context: context))
                 
@@ -35,6 +35,7 @@ public class CoreDataFeedStore: FeedStore {
                 completion(error)
             }
         }
+        
     }
     
     public func retrieve(completion: @escaping RetrivalCompletion) {
@@ -105,6 +106,17 @@ private class ManagedFeedImage: NSManagedObject, Identifiable {
 private class ManagedCache: NSManagedObject, Identifiable {
     @NSManaged public var timestamp: Date
     @NSManaged public var feed: NSOrderedSet
+    
+    static func find(in context: NSManagedObjectContext) throws -> ManagedCache? {
+        let request = ManagedCache.fetchRequest()
+        request.returnsObjectsAsFaults = false
+        return try context.fetch(request).first as? ManagedCache
+    }
+    
+    static func newUniqeInstance(in context: NSManagedObjectContext) throws -> ManagedCache {
+        try find(in: context).map(context.delete)
+        return ManagedCache(context: context)
+    }
 }
 
 private extension Array where Element == EssentialFeed.LocalFeedImage {
