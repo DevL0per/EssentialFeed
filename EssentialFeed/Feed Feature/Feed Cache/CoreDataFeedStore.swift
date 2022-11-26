@@ -8,17 +8,23 @@
 import Foundation
 import CoreData
 
-class CoreDataFeedStore: FeedStore {
+public class CoreDataFeedStore: FeedStore {
     
-    func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+    private let container: NSPersistentContainer
+    
+    public init(bundle: Bundle = .main) throws {
+        container = try NSPersistentContainer.load(modelName: "FeedStore", in: bundle)
+    }
+    
+    public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         
     }
     
-    func insert(_ items: [EssentialFeed.LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
+    public func insert(_ items: [EssentialFeed.LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         
     }
     
-    func retrieve(completion: @escaping RetrivalCompletion) {
+    public func retrieve(completion: @escaping RetrivalCompletion) {
         completion(.empty)
     }
     
