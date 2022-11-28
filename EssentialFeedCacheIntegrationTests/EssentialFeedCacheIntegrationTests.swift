@@ -22,19 +22,8 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     
     func test_load_deliversNoItemsOnEmptyCache() {
         let sut = makeSUT()
-        let exp = expectation(description: "wait for load result")
         
-        sut.load { result in
-            switch result {
-            case .success(let items):
-                XCTAssertEqual(items, [])
-            case .failure(let error):
-                XCTFail("expected success case with empty array, got \(error) instead")
-            }
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
+        expect(sut, toLoad: [])
     }
     
     func test_load_deliversItemsSavedOnASeparateInstance() {
@@ -49,17 +38,21 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
         }
         wait(for: [saveExp], timeout: 1.0)
         
-        let loadExp = expectation(description: "wait for load completion")
-        sutToPerformLoad.load { result in
+        expect(sutToPerformLoad, toLoad: [feed])
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toLoad expectedFeed: [FeedImage], file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "wait for load completion")
+        sut.load { result in
             switch result {
             case .success(let receivedItems):
-                XCTAssertEqual(receivedItems, [feed])
+                XCTAssertEqual(receivedItems, expectedFeed, file: file, line: line)
             case .failure(let error):
-                XCTFail("expected success case with empty array, got \(error) instead")
+                XCTFail("expected success case with empty array, got \(error) instead", file: file, line: line)
             }
-            loadExp.fulfill()
+            exp.fulfill()
         }
-        wait(for: [loadExp], timeout: 1.0)
+        wait(for: [exp], timeout: 1.0)
     }
     
     private func makeSUT() -> LocalFeedLoader {
