@@ -29,40 +29,32 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     func test_load_deliversItemsSavedOnASeparateInstance() {
         let sutToPerformSave = makeSUT()
         let sutToPerformLoad = makeSUT()
-        let feed = uniqueItem
+        let feedItem = uniqueItem
         
-        let saveExp = expectation(description: "wait for save completion")
-        sutToPerformSave.save([feed]) { error in
-            XCTAssertNil(error, "expected to save successfully")
-            saveExp.fulfill()
-        }
-        wait(for: [saveExp], timeout: 1.0)
-        
-        expect(sutToPerformLoad, toLoad: [feed])
+        save([feedItem], sutToPerformSave)
+        expect(sutToPerformLoad, toLoad: [feedItem])
     }
     
     func test_save_overridesItemsSavedOnASeparateInstance() {
         let sutToPerformSave = makeSUT()
         let sutToPerformOverride = makeSUT()
         let sutToPerformLoad = makeSUT()
-        let firstFeed = uniqueItem
-        let secondFeed = uniqueItem
+        let firstFeedItem = uniqueItem
+        let secondFeedItem = uniqueItem
         
+        save([firstFeedItem], sutToPerformSave)
+        save([secondFeedItem], sutToPerformOverride)
+        expect(sutToPerformLoad, toLoad: [secondFeedItem])
+    }
+    
+    private func save(_ feed: [FeedImage], _ sut: LocalFeedLoader,
+                      file: StaticString = #file, line: UInt = #line) {
         let saveExp = expectation(description: "wait for save completion")
-        sutToPerformSave.save([firstFeed]) { error in
-            XCTAssertNil(error, "Expected to save feed successfully")
+        sut.save(feed) { error in
+            XCTAssertNil(error, "Expected to save feed successfully", file: file, line: line)
             saveExp.fulfill()
         }
         wait(for: [saveExp], timeout: 1.0)
-        
-        let overrideExp = expectation(description: "wait for save completion")
-        sutToPerformOverride.save([secondFeed]) { error in
-            XCTAssertNil(error, "Expected to save feed successfully")
-            overrideExp.fulfill()
-        }
-        wait(for: [overrideExp], timeout: 1.0)
-        
-        expect(sutToPerformLoad, toLoad: [secondFeed])
     }
     
     private func expect(_ sut: LocalFeedLoader, toLoad expectedFeed: [FeedImage], file: StaticString = #file, line: UInt = #line) {
