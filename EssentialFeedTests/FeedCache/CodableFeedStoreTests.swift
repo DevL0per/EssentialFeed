@@ -101,7 +101,7 @@ class CodableFeedStoreTests: XCTestCase, FailableFeedStore {
     }
     
     private func cachesDirectory() -> URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        FileManager.default.urls(for: .cachesDirectory, in: .systemDomainMask).first!
     }
     
     private func setupAnEmptyStoreState() {
