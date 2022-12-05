@@ -24,7 +24,9 @@ final class FeedViewController: UITableViewController {
         refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
         refreshControl?.beginRefreshing()
         
-        loader?.load() { _ in }
+        loader?.load() { [weak self] _ in
+            self?.refreshControl?.endRefreshing()
+        }
     }
     
     @objc private func load() {
@@ -66,12 +68,31 @@ final class FeedViewControllerTests: XCTestCase {
         
         XCTAssertEqual(sut.refreshControl?.isRefreshing, true)
     }
+    
+    func test_viewDidLoad_hidesLoadingIndicatorOnLoaderCompletion() {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        
+        loader.completeLoading()
+        
+        XCTAssertEqual(sut.refreshControl?.isRefreshing, false)
+    }
 
     class LoaderSpy: FeedLoader {
-        private(set) var loadCallCount: Int = 0
+        typealias LoadCompletion = (FeedLoaderResult) -> Void
         
-        func load(completion: @escaping (EssentialFeed.FeedLoaderResult) -> Void) {
-            loadCallCount+=1
+        var loadCallCount: Int {
+            completions.count
+        }
+        
+        private var completions: [LoadCompletion] = []
+        
+        func load(completion: @escaping (FeedLoaderResult) -> Void) {
+            self.completions.append(completion)
+        }
+        
+        func completeLoading(atIndex index: Int = 0) {
+            completions[index](.success([]))
         }
     }
     
