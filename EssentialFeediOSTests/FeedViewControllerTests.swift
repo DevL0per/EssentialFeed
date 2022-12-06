@@ -46,6 +46,10 @@ final class FeedViewControllerTests: XCTestCase {
         
         loader.completeLoading(atIndex: 1)
         XCTAssertFalse(sut.isShowingLoadingIndocator())
+        
+        sut.simulateUserInitiatedFeedReload()
+        loader.completeLoadingWithError(atIndex: 2)
+        XCTAssertFalse(sut.isShowingLoadingIndocator())
     }
     
     func test_loadFeedCompletion_rendersSuccessfullyLoadedFeed() {
@@ -65,6 +69,19 @@ final class FeedViewControllerTests: XCTestCase {
         loader.completeLoading(with: [image0, image1, image2, image3])
         assertThat(sut, isRendering: [image0, image1, image2, image3])
     }
+    
+    func test_loadFeedCompletion_doesNotAlterCurrentRenderingStateOnError() {
+        let image0 = makeImage(description: "description", location: "location")
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeLoading(with: [image0])
+        assertThat(sut, isRendering: [image0])
+        
+        sut.simulateUserInitiatedFeedReload()
+        loader.completeLoadingWithError()
+        assertThat(sut, isRendering: [image0])
+    }
 
     class LoaderSpy: FeedLoader {
         typealias LoadCompletion = (FeedLoaderResult) -> Void
@@ -81,6 +98,11 @@ final class FeedViewControllerTests: XCTestCase {
         
         func completeLoading(with feed: [FeedImage] = [], atIndex index: Int = 0) {
             completions[index](.success(feed))
+        }
+        
+        func completeLoadingWithError(atIndex index: Int = 0) {
+            let error = NSError(domain: "", code: 1)
+            completions[index](.failure(error))
         }
     }
     
