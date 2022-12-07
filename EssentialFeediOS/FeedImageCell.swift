@@ -12,4 +12,5 @@ final public class FeedImageCell: UITableViewCell {
     public let locationLabel = UILabel()
     public let feedImageView = UIImageView()
     public let feedImageContainer = UIView()
+    public let retryButton = UIButton()
 }
