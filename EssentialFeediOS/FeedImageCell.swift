@@ -10,4 +10,5 @@ import UIKit
 final public class FeedImageCell: UITableViewCell {
     public let descriptionLabel = UILabel()
     public let locationLabel = UILabel()
+    public let feedImageContainer = UIView()
 }
