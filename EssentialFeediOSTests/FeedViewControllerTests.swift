@@ -201,6 +201,22 @@ final class FeedViewControllerTests: XCTestCase {
         loader.completeImageDataLoading(with: invalidImageData, atIndex: 0)
         XCTAssertEqual(view0?.isShowingRetryAction, true)
     }
+    
+    func test_feedImageViewRetryAction_retriesImageLoad() {
+        let image0 = makeImage(url: URL(string: "http://url-0.com")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeLoading(with: [image0])
+        let view0 = sut.simulateFeedImageViewVisible(at: 0)
+        XCTAssertEqual(loader.loadedImageURLs, [image0.url])
+        
+        loader.completeImageDataLoadingWithError(atIndex: 0)
+        XCTAssertEqual(loader.loadedImageURLs, [image0.url])
+        
+        view0?.simulateRetryAction()
+        XCTAssertEqual(loader.loadedImageURLs, [image0.url, image0.url])
+    }
 
     class LoaderSpy: FeedLoader, FeedImageDataLoader {
         
@@ -309,6 +325,10 @@ private extension FeedImageCell {
         locationLabel.text
     }
     
+    func simulateRetryAction() {
+        retryButton.simulateTap()
+    }
+    
 }
 
 private extension FeedViewController {
@@ -349,6 +369,16 @@ private extension UIRefreshControl {
     func simulatePullToRefresh() {
         allTargets.forEach { target in
             actions(forTarget: target, forControlEvent: .valueChanged)?.forEach {
+                (target as NSObject).perform(Selector($0))
+            }
+        }
+    }
+}
+
+private extension UIButton {
+    func simulateTap() {
+        allTargets.forEach { target in
+            actions(forTarget: target, forControlEvent: .touchUpInside)?.forEach {
                 (target as NSObject).perform(Selector($0))
             }
         }
