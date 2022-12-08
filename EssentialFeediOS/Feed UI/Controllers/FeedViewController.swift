@@ -8,52 +8,32 @@
 import UIKit
 import EssentialFeed
 
-public protocol FeedImageDataLoaderTask {
-    func cancel()
-}
-
-public protocol FeedImageDataLoader {
-    typealias Result = Swift.Result<Data, Error>
-    func loadImageData(from url: URL, completion: @escaping (Result)->Void) -> FeedImageDataLoaderTask
-}
-
 final public class FeedViewController: UITableViewController, UITableViewDataSourcePrefetching {
     
-    private var feedLoader: FeedLoader?
+    private var refreshController: RefreshController?
     private var imageLoader: FeedImageDataLoader?
-    private var tableModel: [FeedImage] = []
+    private var tableModel: [FeedImage] = [] {
+        didSet {
+            tableView.reloadData()
+        }
+    }
     private var imageLoaderTasks: [IndexPath: FeedImageDataLoaderTask] = [:]
     
     public convenience init(feedLoader: FeedLoader, imageLoader: FeedImageDataLoader) {
         self.init()
         self.imageLoader = imageLoader
-        self.feedLoader = feedLoader
+        self.refreshController = RefreshController(feedLoader: feedLoader)
     }
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
-        refreshControl = UIRefreshControl()
-        refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
-        refreshControl?.beginRefreshing()
-        
         tableView.prefetchDataSource = self
         
-        load()
-    }
-    
-    @objc private func load() {
-        refreshControl?.beginRefreshing()
-        feedLoader?.load { [weak self] result in
-            switch result {
-            case .success(let feed):
-                self?.tableModel = feed
-            case .failure:
-                break
-            }
-            self?.tableView.reloadData()
-            self?.refreshControl?.endRefreshing()
+        refreshControl = refreshController?.view
+        refreshController?.onRefresh = { [weak self] feed in
+            self?.tableModel = feed
         }
+        refreshController?.refresh()
     }
     
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
