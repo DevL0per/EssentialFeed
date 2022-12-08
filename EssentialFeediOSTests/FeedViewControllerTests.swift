@@ -217,6 +217,18 @@ final class FeedViewControllerTests: XCTestCase {
         view0?.simulateRetryAction()
         XCTAssertEqual(loader.loadedImageURLs, [image0.url, image0.url])
     }
+    
+    func test_feedImageView_prefetchesImageURLWhenNearVisible() {
+        let image0 = makeImage(url: URL(string: "http://url-0.com")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeLoading(with: [image0])
+        XCTAssertEqual(loader.loadedImageURLs, [])
+        
+        sut.simulateFeedImageViewNearVisible(at: 0)
+        XCTAssertEqual(loader.loadedImageURLs, [image0.url])
+    }
 
     class LoaderSpy: FeedLoader, FeedImageDataLoader {
         
@@ -301,6 +313,7 @@ final class FeedViewControllerTests: XCTestCase {
 
 private extension FeedImageCell {
     
+    
     var isShowingRetryAction: Bool {
         !retryButton.isHidden
     }
@@ -344,6 +357,12 @@ private extension FeedViewController {
         let delegate = tableView.delegate
         let indexPath = IndexPath(row: index, section: feedImagesSection)
         delegate?.tableView?(tableView, didEndDisplaying: visibleCell!, forRowAt: indexPath)
+    }
+    
+    func simulateFeedImageViewNearVisible(at index: Int) {
+        let prefetchDS = tableView.prefetchDataSource
+        let indexPath = IndexPath(row: index, section: feedImagesSection)
+        prefetchDS?.tableView(tableView, prefetchRowsAt: [indexPath])
     }
     
     func simulateUserInitiatedFeedReload() {
