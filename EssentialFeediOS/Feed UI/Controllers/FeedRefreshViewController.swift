@@ -7,7 +7,7 @@
 
 import UIKit
  
-final class RefreshController: NSObject {
+final class FeedRefreshViewController: NSObject {
     
     lazy var view: UIRefreshControl = {
         return binded(UIRefreshControl())

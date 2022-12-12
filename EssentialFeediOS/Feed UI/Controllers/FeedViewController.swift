@@ -15,9 +15,9 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
             tableView.reloadData()
         }
     }
-    private var refreshController: RefreshController?
+    private var refreshController: FeedRefreshViewController?
     
-    convenience init(refreshController: RefreshController) {
+    convenience init(refreshController: FeedRefreshViewController) {
         self.init()
         self.refreshController = refreshController
     }
