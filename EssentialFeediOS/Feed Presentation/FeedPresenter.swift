@@ -17,7 +17,7 @@ protocol FeedView: AnyObject {
 
 final class FeedPresenter {
     
-    weak var feedLoadingView: FeedLoadingView?
+    var feedLoadingView: FeedLoadingView?
     var feedView: FeedView?
     
     private let feedLoader: FeedLoader
