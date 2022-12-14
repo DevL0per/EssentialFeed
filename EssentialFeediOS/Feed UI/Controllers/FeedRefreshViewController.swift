@@ -33,8 +33,8 @@ final class FeedRefreshViewController: NSObject {
 
 extension FeedRefreshViewController: FeedLoadingView {
     
-    func display(isLoading: Bool) {
-        if isLoading {
+    func display(_ viewData: FeedLoadingViewData) {
+        if viewData.isLoading {
             view.beginRefreshing()
         } else {
             view.endRefreshing()
