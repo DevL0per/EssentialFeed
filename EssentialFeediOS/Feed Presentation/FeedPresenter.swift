@@ -34,17 +34,17 @@ final class FeedPresenter {
         self.feedLoader = feedLoader
     }
     
-    func loadFeed() {
+    func didStartLoadingFeed() {
         feedLoadingView?.display(FeedLoadingViewData(isLoading: true))
-        feedLoader.load { [weak self] result in
-            switch result {
-            case .success(let feed):
-                self?.feedView?.display(FeedViewData(feed: feed))
-            case .failure:
-                break
-            }
-            self?.feedLoadingView?.display(FeedLoadingViewData(isLoading: false))
-        }
+    }
+    
+    func didFinishLoadingFeed(with feed: [FeedImage]) {
+        feedView?.display(FeedViewData(feed: feed))
+        feedLoadingView?.display(FeedLoadingViewData(isLoading: false))
+    }
+    
+    func didFinishLoadingFeed(with error: Error) {
+        feedLoadingView?.display(FeedLoadingViewData(isLoading: false))
     }
     
 }
