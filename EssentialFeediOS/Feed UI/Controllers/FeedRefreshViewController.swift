@@ -13,14 +13,14 @@ final class FeedRefreshViewController: NSObject {
         return loadView()
     }()
     
-    private let presenter: FeedPresenter
+    private let loadFeed: ()->Void
     
-    init(presenter: FeedPresenter) {
-        self.presenter = presenter
+    init(loadFeed: @escaping ()->Void) {
+        self.loadFeed = loadFeed
     }
     
     @objc func refresh() {
-        presenter.loadFeed()
+        loadFeed()
     }
     
     private func loadView() -> UIRefreshControl {
