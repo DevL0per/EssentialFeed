@@ -17,11 +17,9 @@ final class FeedImageCellController {
     }
     
     func view(in tableView: UITableView) -> UITableViewCell {
-        let feedImageCell = tableView.dequeueReusableCell(withIdentifier: "FeedImageCell") as! FeedImageCell
-        self.cell = feedImageCell
-        let cell = binded(feedImageCell)
+        cell = binded(tableView.dequeueReusableCell())
         viewModel.loadImage()
-        return cell
+        return cell!
     }
     
     func preload() {
@@ -33,7 +31,7 @@ final class FeedImageCellController {
         viewModel.cancelLoad()
     }
     
-    func binded(_ cell: FeedImageCell) -> UITableViewCell {
+    func binded(_ cell: FeedImageCell) -> FeedImageCell {
         cell.feedImageContainer.startShimmering()
         cell.feedImageView.image = nil
         cell.retryButton.isHidden = true
@@ -59,4 +57,11 @@ final class FeedImageCellController {
         cell = nil
     }
     
+}
+
+private extension UITableView {
+    func dequeueReusableCell<T: UITableViewCell>() -> T {
+        let identifier = String(describing: T.self)
+        return dequeueReusableCell(withIdentifier: identifier) as! T
+    }
 }
