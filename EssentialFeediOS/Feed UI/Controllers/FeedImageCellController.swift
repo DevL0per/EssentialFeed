@@ -10,6 +10,7 @@ import UIKit
 final class FeedImageCellController {
     
     private let viewModel: FeedImageCellViewModel<UIImage>
+    private var cell: FeedImageCell?
     
     init(viewModel: FeedImageCellViewModel<UIImage>) {
         self.viewModel = viewModel
@@ -17,6 +18,7 @@ final class FeedImageCellController {
     
     func view(in tableView: UITableView) -> UITableViewCell {
         let feedImageCell = tableView.dequeueReusableCell(withIdentifier: "FeedImageCell") as! FeedImageCell
+        self.cell = feedImageCell
         let cell = binded(feedImageCell)
         viewModel.loadImage()
         return cell
@@ -27,6 +29,7 @@ final class FeedImageCellController {
     }
     
     func cancelLoad() {
+        releaseCellForReuse()
         viewModel.cancelLoad()
     }
     
@@ -40,16 +43,20 @@ final class FeedImageCellController {
         cell.locationLabel.text = viewModel.location
         cell.descriptionLabel.text = viewModel.description
         
-        viewModel.onShouldRetryImageLoadStateChange = { [weak cell] shouldRetry in
-            cell?.retryButton.isHidden = !shouldRetry
+        viewModel.onShouldRetryImageLoadStateChange = { [weak self] shouldRetry in
+            self?.cell?.retryButton.isHidden = !shouldRetry
         }
-        viewModel.onLoadingStateChange = { [weak cell] isLoading in
-            if !isLoading { cell?.feedImageContainer.stopShimmering() }
+        viewModel.onLoadingStateChange = { [weak self] isLoading in
+            if !isLoading { self?.cell?.feedImageContainer.stopShimmering() }
         }
-        viewModel.onImageLoad = { [weak cell] image in
-            cell?.feedImageView.image = image
+        viewModel.onImageLoad = { [weak self] image in
+            self?.cell?.feedImageView.image = image
         }
         return cell
+    }
+    
+    private func  releaseCellForReuse() {
+        cell = nil
     }
     
 }

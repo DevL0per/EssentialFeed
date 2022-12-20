@@ -244,6 +244,19 @@ final class FeedViewControllerTests: XCTestCase {
         sut.simulateFeedImageViewNotNearVisible(at: 0)
         XCTAssertEqual(loader.canceledURLs, [image0.url])
     }
+    
+    func test_feedImageView_doesNotRenderLoadedImageWhenNotVisibleAnymore() {
+        let image0 = makeImage(url: URL(string: "http://url-0.com")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeLoading(with: [image0])
+        let cell = sut.simulateFeedImageViewNotVisible(at: 0)
+        let imageData0 = UIImage.make(withColor: .red).pngData()!
+        loader.completeImageDataLoading(with: imageData0, atIndex: 0)
+        
+        XCTAssertNil(cell?.renderedImage)
+    }
 
     class LoaderSpy: FeedLoader, FeedImageDataLoader {
         
@@ -373,11 +386,13 @@ private extension FeedViewController {
         prefetchDS?.tableView?(tableView, cancelPrefetchingForRowsAt: [indexPath])
     }
     
-    func simulateFeedImageViewNotVisible(at index: Int) {
+    @discardableResult
+    func simulateFeedImageViewNotVisible(at index: Int) -> FeedImageCell? {
         let visibleCell = simulateFeedImageViewVisible(at: index)
         let delegate = tableView.delegate
         let indexPath = IndexPath(row: index, section: feedImagesSection)
         delegate?.tableView?(tableView, didEndDisplaying: visibleCell!, forRowAt: indexPath)
+        return visibleCell
     }
     
     func simulateFeedImageViewNearVisible(at index: Int) {
