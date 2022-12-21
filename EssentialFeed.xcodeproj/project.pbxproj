@@ -55,7 +55,7 @@
 		0AED35D8293F03120085A78E /* FeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AED35D7293F03120085A78E /* FeedViewController.swift */; };
 		0AED35DA293F08600085A78E /* FeedImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AED35D9293F08600085A78E /* FeedImageCell.swift */; };
 		0AEECF07293DBE340050526F /* EssentialFeediOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AEECEFF293DBE340050526F /* EssentialFeediOS.framework */; };
-		0AEECF16293DC2AC0050526F /* FeedViewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEECF15293DC2AC0050526F /* FeedViewControllerTests.swift */; };
+		0AEECF16293DC2AC0050526F /* FeedUIIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEECF15293DC2AC0050526F /* FeedUIIntegrationTests.swift */; };
 		0AEECF1D293DC5D50050526F /* EssentialFeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AD277FA28EE140A000C3602 /* EssentialFeed.framework */; platformFilter = ios; };
 		0AEECF1E293DC5D50050526F /* EssentialFeed.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0AD277FA28EE140A000C3602 /* EssentialFeed.framework */; platformFilter = ios; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		0AEECF23293DC6CB0050526F /* XCTestCase+memoryLeakTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD27D5D2903C3D900008D13 /* XCTestCase+memoryLeakTracking.swift */; };
@@ -165,7 +165,7 @@
 		0AEECEFF293DBE340050526F /* EssentialFeediOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EssentialFeediOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0AEECF06293DBE340050526F /* EssentialFeediOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EssentialFeediOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0AEECF14293DC2AB0050526F /* EssentialFeediOSTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EssentialFeediOSTests-Bridging-Header.h"; sourceTree = "<group>"; };
-		0AEECF15293DC2AC0050526F /* FeedViewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewControllerTests.swift; sourceTree = "<group>"; };
+		0AEECF15293DC2AC0050526F /* FeedUIIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedUIIntegrationTests.swift; sourceTree = "<group>"; };
 		0AF0596E29483F21004DC1BE /* FeedImageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedImageViewModel.swift; sourceTree = "<group>"; };
 		0AF34FF5295032F80036D4D7 /* Feed.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Feed.storyboard; sourceTree = "<group>"; };
 		0AF70A0F28EF52B600F8AC7E /* EssentialFeedTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EssentialFeedTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -456,6 +456,14 @@
 			path = FeedCache;
 			sourceTree = "<group>";
 		};
+		0AE4784E2952CC2A00ED3210 /* FeedUI */ = {
+			isa = PBXGroup;
+			children = (
+				0AEECF15293DC2AC0050526F /* FeedUIIntegrationTests.swift */,
+			);
+			path = FeedUI;
+			sourceTree = "<group>";
+		};
 		0AEECF00293DBE340050526F /* EssentialFeediOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -469,7 +477,7 @@
 		0AEECF0A293DBE340050526F /* EssentialFeediOSTests */ = {
 			isa = PBXGroup;
 			children = (
-				0AEECF15293DC2AC0050526F /* FeedViewControllerTests.swift */,
+				0AE4784E2952CC2A00ED3210 /* FeedUI */,
 				0AEECF14293DC2AB0050526F /* EssentialFeediOSTests-Bridging-Header.h */,
 			);
 			path = EssentialFeediOSTests;
@@ -801,7 +809,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0AEECF16293DC2AC0050526F /* FeedViewControllerTests.swift in Sources */,
+				0AEECF16293DC2AC0050526F /* FeedUIIntegrationTests.swift in Sources */,
 				0AEECF23293DC6CB0050526F /* XCTestCase+memoryLeakTracking.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
