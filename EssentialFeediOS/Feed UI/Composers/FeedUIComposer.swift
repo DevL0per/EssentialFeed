@@ -16,11 +16,7 @@ public final class FeedUIComposer {
         let feedLoaderPresenterAdapter = FeedLoaderPresenterAdapter()
         let refreshController = FeedRefreshViewController(loadFeed: feedLoaderPresenterAdapter.loadFeed)
         
-        let bundle = Bundle(for: FeedViewController.self)
-        let storyboard = UIStoryboard(name: "Feed", bundle: bundle)
-        let feedViewController = storyboard.instantiateInitialViewController() as! FeedViewController
-        feedViewController.title = FeedPresenter.title
-        feedViewController.refreshController = refreshController
+        let feedViewController = FeedViewController.makeWith(refreshController: refreshController, title: FeedPresenter.title)
         
         let feedViewAdapter = FeedViewAdapter(controller: feedViewController, imageLoader: imageLoader)
         let feedPresenter = FeedPresenter(feedLoadingView: WeakRefVirtualProxy(object: refreshController),
@@ -30,6 +26,17 @@ public final class FeedUIComposer {
         return feedViewController
     }
     
+}
+
+private extension FeedViewController {
+    static func makeWith(refreshController: FeedRefreshViewController, title: String) -> FeedViewController {
+        let bundle = Bundle(for: FeedViewController.self)
+        let storyboard = UIStoryboard(name: "Feed", bundle: bundle)
+        let feedViewController = storyboard.instantiateInitialViewController() as! FeedViewController
+        feedViewController.title = title
+        feedViewController.refreshController = refreshController
+        return feedViewController
+    }
 }
 
 private final class WeakRefVirtualProxy<T: AnyObject> {
