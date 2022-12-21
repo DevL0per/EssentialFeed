@@ -25,6 +25,9 @@ protocol FeedView: AnyObject {
 
 final class FeedPresenter {
     
+    static var title: String {
+        return "My Feed"
+    }
     private let feedLoadingView: FeedLoadingView
     private let feedView: FeedView
     
