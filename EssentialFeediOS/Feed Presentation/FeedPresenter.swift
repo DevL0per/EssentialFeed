@@ -23,7 +23,7 @@ protocol FeedView: AnyObject {
     func display(_ viewData: FeedViewData)
 }
 
-final class FeedPresenter {
+final public class FeedPresenter {
     
     static var title: String {
         return NSLocalizedString("FEED_VIEW_TITLE", tableName: "Feed", bundle: Bundle(for: FeedPresenter.self), comment: "")
