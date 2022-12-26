@@ -266,6 +266,19 @@ final class FeedUIIntegrationTests: XCTestCase {
         
         XCTAssertNil(cell?.renderedImage)
     }
+    
+    func test_loadFeedCompletion_dispatchesToTheMainThread() {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        let image = makeImage(url: URL(string: "http://url-0.com")!)
+        let exp = expectation(description: "wait for background queue")
+        
+        DispatchQueue.global().async {
+            loader.completeLoading(with: [image])
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+    }
 
     class LoaderSpy: FeedLoader, FeedImageDataLoader {
         
