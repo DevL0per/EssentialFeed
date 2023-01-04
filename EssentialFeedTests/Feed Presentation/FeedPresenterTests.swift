@@ -8,7 +8,9 @@
 import XCTest
 
 final class FeedPresenter {
-    
+    init(view: Any) {
+        
+    }
 }
 
 final class FeedPresenterTests: XCTestCase {
@@ -18,9 +20,16 @@ final class FeedPresenterTests: XCTestCase {
     }
     
     func test_init_doesNotSendMessagesToView() {
-        let view = ViewSPY()
-        let _ = FeedPresenter()
+        let (_, view) = makeSUT()
         XCTAssertTrue(view.messages.isEmpty)
     }
 
+    private func makeSUT(file: StaticString = #file,
+                         line: UInt = #line) -> (FeedPresenter, ViewSPY) {
+        let view = ViewSPY()
+        let sut = FeedPresenter(view: view)
+        trackForMemoryLeaks(view, file: file, line: line)
+        trackForMemoryLeaks(sut, file: file, line: line)
+        return (sut, view)
+    }
 }
