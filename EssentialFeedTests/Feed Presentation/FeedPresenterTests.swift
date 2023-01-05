@@ -34,6 +34,13 @@ final class FeedPresenter {
         self.feedView = feedView
     }
     
+    static var title: String {
+        return NSLocalizedString("FEED_VIEW_TITLE",
+                                 tableName: "Feed",
+                                 bundle: Bundle(for: FeedPresenter.self),
+                                 comment: "")
+    }
+    
     func didStartLoadingFeed() {
         feedLoadingView.display(FeedLoadingViewData(isLoading: true))
     }
@@ -49,6 +56,10 @@ final class FeedPresenter {
 }
 
 final class FeedPresenterTests: XCTestCase {
+    
+    func test_title_isLocalized() {
+        XCTAssertEqual(FeedPresenter.title, localized("FEED_VIEW_TITLE"))
+    }
 
     func test_init_doesNotSendMessagesToView() {
         let (_, view) = makeSUT()
@@ -100,5 +111,14 @@ final class FeedPresenterTests: XCTestCase {
         func display(_ viewData: FeedLoadingViewData) {
             messages.insert(.display(isLoading: viewData.isLoading))
         }
+    }
+    
+    private func localized(_ key: String, file: StaticString = #file, line: UInt = #line) -> String {
+        let bundle = Bundle(for: FeedPresenter.self)
+        let table = "Feed"
+        let value = bundle.localizedString(forKey: key, value: nil, table: "Feed")
+        
+        XCTAssertNotEqual(value, key, "missing localization for key: \(key) in table \(table)", file: file, line: line)
+        return value
     }
 }
