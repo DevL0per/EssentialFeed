@@ -42,6 +42,10 @@ final class FeedPresenter {
         feedView.display(FeedViewData(feed: feed))
         feedLoadingView.display(FeedLoadingViewData(isLoading: false))
     }
+    
+    func didFinishLoadingFeed(with error: Error) {
+        feedLoadingView.display(FeedLoadingViewData(isLoading: false))
+    }
 }
 
 final class FeedPresenterTests: XCTestCase {
@@ -63,6 +67,14 @@ final class FeedPresenterTests: XCTestCase {
         sut.didFinishLoadingFeed(with: feedImages)
         
         XCTAssertEqual(view.messages, [.display(feed: feedImages), .display(isLoading: false)])
+    }
+    
+    func test_didFinishLoadingFeedWithError_stopsLoading() {
+        let (sut, view) = makeSUT()
+        let error = anyNSError()
+        sut.didFinishLoadingFeed(with: error)
+        
+        XCTAssertEqual(view.messages, [.display(isLoading: false)])
     }
 
     private func makeSUT(file: StaticString = #file,
