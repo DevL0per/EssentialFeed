@@ -377,7 +377,7 @@ final class FeedUIIntegrationTests: XCTestCase {
     }
     
     private func localized(_ key: String, file: StaticString = #file, line: UInt = #line) -> String {
-        let bundle = Bundle(for: FeedViewController.self)
+        let bundle = Bundle(for: FeedPresenter.self)
         let table = "Feed"
         let value = bundle.localizedString(forKey: key, value: nil, table: "Feed")
         

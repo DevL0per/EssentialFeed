@@ -6,7 +6,8 @@
 //
 
 import UIKit
- 
+import EssentialFeed
+
 final class FeedRefreshViewController: NSObject {
     
     lazy var view: UIRefreshControl = {
