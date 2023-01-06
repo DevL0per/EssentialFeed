@@ -8,57 +8,6 @@
 import XCTest
 import EssentialFeed
 
-struct FeedImageViewModel<Image> {
-    let description: String?
-    let location: String?
-    let image: Image?
-    let isLoading: Bool
-    let shouldRetry: Bool
-}
-
-protocol FeedImageView {
-    associatedtype Image
-    
-    func display(_ viewModel: FeedImageViewModel<Image>)
-}
-
-final class FeedImagePresenter<View: FeedImageView, Image> where View.Image == Image {
-    
-    private let view: View
-    private let imageTransrormer: (Data)->Image?
-    
-    init(view: View, imageTransrormer: @escaping (Data)->Image?) {
-        self.view = view
-        self.imageTransrormer = imageTransrormer
-    }
-    
-    func didStartLoadingImageData(for model: FeedImage) {
-        view.display(FeedImageViewModel(description: model.description,
-                                        location: model.location,
-                                        image: nil,
-                                        isLoading: true,
-                                        shouldRetry: false))
-    }
-    
-    func didFinishLoadingImageData(with error: Error, for model: FeedImage) {
-        view.display(FeedImageViewModel(description: model.description,
-                                        location: model.location,
-                                        image: nil,
-                                        isLoading: false,
-                                        shouldRetry: true))
-    }
-    
-    func didFinishLoadingImageData(with data: Data, for model: FeedImage) {
-        let transformedImage = imageTransrormer(data)
-        let shouldRetry = (transformedImage == nil)
-        view.display(FeedImageViewModel(description: model.description,
-                                        location: model.location,
-                                        image: transformedImage,
-                                        isLoading: false,
-                                        shouldRetry: shouldRetry))
-    }
-}
-
 final class FeedImagePresenterTests: XCTestCase {
     
     func test_init_doesNotLoadImage() {
