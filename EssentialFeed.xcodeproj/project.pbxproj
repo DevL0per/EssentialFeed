@@ -320,13 +320,6 @@
 			path = Composers;
 			sourceTree = "<group>";
 		};
-		0A453DCD2946F95200D55023 /* Feed Presentation */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Feed Presentation";
-			sourceTree = "<group>";
-		};
 		0A6C3A41293295490045D949 /* Infastructure */ = {
 			isa = PBXGroup;
 			children = (
@@ -516,7 +509,6 @@
 			isa = PBXGroup;
 			children = (
 				0A453D902941AD9200D55023 /* Feed Image Loader */,
-				0A453DCD2946F95200D55023 /* Feed Presentation */,
 				0A453D932941ADB800D55023 /* Feed UI */,
 			);
 			path = EssentialFeediOS;
