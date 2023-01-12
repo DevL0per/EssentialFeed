@@ -30,12 +30,8 @@ extension URLSessionDataTask: HTTPDataTask {}
 // MARK: - Tests
 final class URLSessionHTTPClientTests: XCTestCase {
     
-    override func setUpWithError() throws {
-        URLProtocolStub.startInterceptingRequests()
-    }
-    
     override func tearDownWithError() throws {
-        URLProtocolStub.stopInterceptingRequests()
+        URLProtocolStub.removeStub()
     }
     
     func test_get_failsOnRequstError() {
@@ -170,7 +166,10 @@ final class URLSessionHTTPClientTests: XCTestCase {
     }
     
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> URLSessionHTTPClient {
-        let sut = URLSessionHTTPClient()
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [URLProtocolStub.self]
+        let session = URLSession(configuration: configuration)
+        let sut = URLSessionHTTPClient(urlSession: session)
         trackForMemoryLeaks(sut)
         return sut
     }
@@ -200,12 +199,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
             stub = Stub(data: nil, response: nil, error: nil, requestObserver: observer)
         }
         
-        static func startInterceptingRequests() {
-            URLProtocol.registerClass(URLProtocolStub.self)
-        }
-        
-        static func stopInterceptingRequests() {
-            URLProtocol.unregisterClass(URLProtocolStub.self)
+        static func removeStub() {
             stub = nil
         }
         

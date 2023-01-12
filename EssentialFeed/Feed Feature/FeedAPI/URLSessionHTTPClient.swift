@@ -11,7 +11,7 @@ final public class URLSessionHTTPClient: HTTPClient {
     
     private let urlSession: URLSession
      
-    public init(urlSession: URLSession = .shared) {
+    public init(urlSession: URLSession) {
         self.urlSession = urlSession
     }
     struct URLSessionTaskWrapper: HTTPClientTask {
