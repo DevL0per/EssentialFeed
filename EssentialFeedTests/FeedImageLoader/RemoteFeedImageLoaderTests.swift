@@ -143,11 +143,16 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
     private class HTTPClientSPY: HTTPClient {
         var requestedURLs = [URL]()
         
+        private struct Task: HTTPClientTask {
+            func cancel() {}
+        }
         private var messages = [(url: URL, completion: (HTTPClientResult) -> Void)]()
         
-        func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
+        func get(from url: URL, completion: @escaping (EssentialFeed.HTTPClientResult) -> Void) -> EssentialFeed.HTTPClientTask {
             requestedURLs.append(url)
             messages.append((url, completion))
+            
+            return Task()
         }
         
         func complete(with error: Error, at index: Int = 0) {

@@ -98,6 +98,25 @@ final class URLSessionHTTPClientTests: XCTestCase {
         XCTAssertEqual(values.data, emptyData)
     }
     
+    func test_cancelGetFromURLTask_cancelsURLRequest() {
+        let url = anyURL()
+        let sut = makeSUT()
+        
+        let exp = expectation(description: "Wait for request")
+        let task = sut.get(from: url) { result in
+            switch result {
+            case let .failure(error as NSError) where error.code == URLError.cancelled.rawValue:
+                break
+            default:
+                XCTFail("Expected cancelled task")
+            }
+            exp.fulfill()
+        }
+
+        task.cancel()
+        wait(for: [exp], timeout: 1.0)
+    }
+    
     private func anyURL() -> URL {
         return URL(string: "http/google.com")!
     }
