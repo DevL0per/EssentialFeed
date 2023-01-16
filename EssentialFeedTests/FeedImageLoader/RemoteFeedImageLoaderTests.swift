@@ -19,8 +19,9 @@ final class RemoteFeedImageDataLoader {
         self.client = client
     }
     
-    func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) {
-        client.get(from: url, completion: { [weak self] result in
+    @discardableResult
+    func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) -> HTTPClientTask {
+        return client.get(from: url, completion: { [weak self] result in
             guard let _ = self else { return }
             switch result {
             case let .success(response, data):
@@ -107,6 +108,18 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
         XCTAssertTrue(capturedResults.isEmpty)
     }
     
+    func test_cancelLoadImageDataURLTask_cancelesClientURLRequest() {
+        let (sut, client) = makeSUT()
+        let url = URL(string: "https://a-given-url.com")!
+        
+        let task = sut.loadImageData(from: url) { _ in }
+        XCTAssertTrue(client.canceledURLs.isEmpty)
+        
+        task.cancel()
+        XCTAssertEqual(client.canceledURLs, [url])
+    }
+
+    
     private func expect(_ sut: RemoteFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
         let exp = expectation(description: "Wait for load completion")
@@ -142,9 +155,14 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
     
     private class HTTPClientSPY: HTTPClient {
         var requestedURLs = [URL]()
+        var canceledURLs = [URL]()
         
         private struct Task: HTTPClientTask {
-            func cancel() {}
+            let onCancel: ()->Void
+            
+            func cancel() {
+                onCancel()
+            }
         }
         private var messages = [(url: URL, completion: (HTTPClientResult) -> Void)]()
         
@@ -152,7 +170,10 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
             requestedURLs.append(url)
             messages.append((url, completion))
             
-            return Task()
+            let task = Task { [weak self] in
+                self?.canceledURLs.append(url)
+            }
+            return task
         }
         
         func complete(with error: Error, at index: Int = 0) {
