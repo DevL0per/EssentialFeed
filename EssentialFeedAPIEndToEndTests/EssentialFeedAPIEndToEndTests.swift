@@ -30,5 +30,27 @@ final class EssentialFeedAPIEndToEndTests: XCTestCase {
         wait(for: [expectation], timeout: 8)
     }
     
+    func test_endToEndTestServerGETFeedImageDataResult_machesFixedTestAccountData() {
+        let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed/73A7F70C-75DA-4C2E-B5A3-EED40DC53AA6/image")!
+        let client = URLSessionHTTPClient(urlSession: .shared)
+        let loader = RemoteFeedImageDataLoader(client: client)
+        trackForMemoryLeaks(loader)
+        trackForMemoryLeaks(client)
+        
+        let exp = expectation(description: "wait for loadImageData completion")
+        
+        loader.loadImageData(from: testServerURL) { result in
+            switch result {
+            case let .success(imageData):
+                XCTAssertTrue(!imageData.isEmpty)
+            default:
+                XCTFail("expected success result with non empty data, got \(result) instead")
+            }
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 8)
+    }
+    
     
 }
