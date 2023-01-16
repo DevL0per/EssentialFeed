@@ -12,7 +12,7 @@ final class EssentialFeedAPIEndToEndTests: XCTestCase {
 
     func test_endToEndTestServerGETFeedResult_mathcesFixedTestAccountData() {
         let url = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
-        let client = URLSessionHTTPClient()
+        let client = URLSessionHTTPClient(urlSession: .shared)
         let sut = RemoteFeedLoader(url: url, client: client)
         trackForMemoryLeaks(client)
         trackForMemoryLeaks(sut)

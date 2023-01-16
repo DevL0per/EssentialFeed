@@ -174,7 +174,7 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
                                                statusCode: statusCode,
                                                httpVersion: nil,
                                                headerFields: nil)!
-            messages[index].completion(.success(httpResponse, data))
+            messages[index].completion(.success((httpResponse, data)))
         }
     }
 

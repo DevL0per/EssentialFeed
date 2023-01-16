@@ -11,10 +11,7 @@ public protocol HTTPClientTask {
     func cancel()
 }
 
-public enum HTTPClientResult {
-    case success(HTTPURLResponse, Data)
-    case failure(Error)
-}
+public typealias HTTPClientResult = Result<(HTTPURLResponse, Data), Error>
 
 public protocol HTTPClient {
     /// The completion handler can be invoked in any thread.
