@@ -19,20 +19,42 @@ final class RemoteFeedImageDataLoader {
         self.client = client
     }
     
+    class HTTPClientTaskWrapper: HTTPClientTask {
+        
+        var wrapped: HTTPClientTask?
+        var completion: ((FeedImageDataLoader.Result)->Void)?
+        
+        init(completion: (@escaping (FeedImageDataLoader.Result) -> Void)) {
+            self.completion = completion
+        }
+        
+        func cancel() {
+            wrapped?.cancel()
+            completion = nil
+        }
+        
+        func complete(with result: FeedImageDataLoader.Result) {
+            completion?(result)
+        }
+        
+    }
+    
     @discardableResult
     func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) -> HTTPClientTask {
-        return client.get(from: url, completion: { [weak self] result in
+        let task = HTTPClientTaskWrapper(completion: completion)
+        task.wrapped = client.get(from: url, completion: { [weak self] result in
             guard let _ = self else { return }
             switch result {
             case let .success(response, data):
                 guard response.statusCode == 200, !data.isEmpty else {
-                    completion(.failure(Error.invalidData))
+                    task.complete(with: .failure(Error.invalidData))
                     return
                 }
             case .failure(let error):
-                completion(.failure(error))
+                task.complete(with: .failure(error))
             }
         })
+        return task
     }
     
 }
@@ -118,7 +140,24 @@ final class RemoteFeedImageLoaderTests: XCTestCase {
         task.cancel()
         XCTAssertEqual(client.canceledURLs, [url])
     }
+    
+    func test_loadImageData_doesNotDeliverDataNorErrorAfterTaskHasBeenCanceled() {
+        let (sut, client) = makeSUT()
+        let url = URL(string: "https://a-given-url.com")!
+        let nonEmptyData = "Non Empty".data(using: .utf8)!
 
+        var capturedResults: [Result<Data, Error>] = []
+        let task = sut.loadImageData(from: url) { result in
+            capturedResults.append(result)
+        }
+        task.cancel()
+        
+        client.complete(with: anyNSError())
+        client.complete(withStatusCode: 200, data: nonEmptyData)
+        client.complete(withStatusCode: 400, data: Data())
+        
+        XCTAssertEqual(capturedResults.count, 0)
+    }
     
     private func expect(_ sut: RemoteFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
