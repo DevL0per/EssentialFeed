@@ -14,6 +14,9 @@ final class LocalFeedImageDataLoader: FeedImageDataLoader {
     private struct Task: FeedImageDataLoaderTask {
         func cancel() {}
     }
+    enum Error: Swift.Error {
+        case notFound
+    }
     
     init(store: FeedImageStore) {
         self.store = store
@@ -22,7 +25,12 @@ final class LocalFeedImageDataLoader: FeedImageDataLoader {
     @discardableResult
     func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) ->  FeedImageDataLoaderTask {
         store.retrieve(dataForURL: url) { result in
-            completion(result.mapError { $0 })
+            completion(
+                result.mapError { $0 }
+                      .flatMap { data in
+                  guard let data = data else { return .failure(Error.notFound) }
+                  return .success(data)
+            })
         }
         return Task()
     }
@@ -50,6 +58,13 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         let error = anyNSError()
         expect(sut, toCompleteWith: .failure(error), when: {
             store.completeRetrival(with: error)
+        })
+    }
+    
+    func test_loadImageData_deliversNotFoundErrorOnEmptyStorage() {
+        let (sut, store) = makeSUT()
+        expect(sut, toCompleteWith: .failure(LocalFeedImageDataLoader.Error.notFound), when: {
+            store.completeRetrival(with: nil)
         })
     }
     
@@ -94,7 +109,7 @@ class FeedImageStore {
         case retrieve(dataFor: URL)
     }
     
-    typealias FeedImageStoreResult = Result<Data, Error>
+    typealias FeedImageStoreResult = Result<Data?, Error>
     
     var receivedMessages = [Message]()
     var retrivalCompletions = [(FeedImageStoreResult)->Void]()
@@ -102,6 +117,10 @@ class FeedImageStore {
     func retrieve(dataForURL url: URL, completion: @escaping (FeedImageStoreResult)->Void) {
         receivedMessages.append(.retrieve(dataFor: url))
         retrivalCompletions.append(completion)
+    }
+    
+    func completeRetrival(with data: Data?, at index: Int = 0) {
+        retrivalCompletions[index](.success(data))
     }
     
     func completeRetrival(with error: Error, at index: Int = 0) {
