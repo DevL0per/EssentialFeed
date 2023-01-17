@@ -11,8 +11,20 @@ import EssentialFeed
 final class LocalFeedImageDataLoader: FeedImageDataLoader {
     
     private let store: FeedImageStore
-    private struct Task: FeedImageDataLoaderTask {
-        func cancel() {}
+    private class Task: FeedImageDataLoaderTask {
+        var completion: ((FeedImageDataLoader.Result)->Void)?
+        
+        init(completion: @escaping (FeedImageDataLoader.Result) -> Void) {
+            self.completion = completion
+        }
+        
+        func complete(with result: FeedImageDataLoader.Result) {
+            completion?(result)
+        }
+        
+        func cancel() {
+            completion = nil
+        }
     }
     enum Error: Swift.Error {
         case notFound
@@ -24,15 +36,16 @@ final class LocalFeedImageDataLoader: FeedImageDataLoader {
     
     @discardableResult
     func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) ->  FeedImageDataLoaderTask {
+        let task = Task(completion: completion)
         store.retrieve(dataForURL: url) { result in
-            completion(
+            task.complete(with:
                 result.mapError { $0 }
                       .flatMap { data in
                   guard let data = data else { return .failure(Error.notFound) }
                   return .success(data)
             })
         }
-        return Task()
+        return task
     }
     
 }
@@ -66,6 +79,24 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         expect(sut, toCompleteWith: .failure(LocalFeedImageDataLoader.Error.notFound), when: {
             store.completeRetrival(with: nil)
         })
+    }
+    
+    func test_loadImageData_doesNotDeliverDataNorErrorAfterTaskHasBeenCanceled() {
+        let (sut, store) = makeSUT()
+        let url = URL(string: "https://a-given-url.com")!
+        let nonEmptyData = "Non Empty".data(using: .utf8)!
+
+        var capturedResults: [Result<Data, Error>] = []
+        let task = sut.loadImageData(from: url) { result in
+            capturedResults.append(result)
+        }
+        task.cancel()
+        
+        store.completeRetrival(with: anyNSError())
+        store.completeRetrival(with: nonEmptyData)
+        store.completeRetrival(with: nil)
+        
+        XCTAssertEqual(capturedResults.count, 0)
     }
     
     private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
