@@ -80,6 +80,15 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         })
     }
     
+    func test_loadImageData_deliversStoradeDataOnFoundData() {
+        let (sut, store) = makeSUT()
+        let nonEmptyData = "Non Empty".data(using: .utf8)!
+        
+        expect(sut, toCompleteWith: .success(nonEmptyData), when: {
+            store.completeRetrival(with: nonEmptyData)
+        })
+    }
+    
     func test_loadImageData_doesNotDeliverDataNorErrorAfterTaskHasBeenCanceled() {
         let (sut, store) = makeSUT()
         let url = URL(string: "https://a-given-url.com")!
