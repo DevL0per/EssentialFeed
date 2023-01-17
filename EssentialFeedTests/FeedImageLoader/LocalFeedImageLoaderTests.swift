@@ -8,6 +8,13 @@
 import XCTest
 import EssentialFeed
 
+protocol FeedImageStore {
+    typealias FeedImageStoreResult = Result<Data?, Error>
+
+    func retrieve(dataForURL url: URL, completion: @escaping (FeedImageStoreResult)->Void)
+}
+
+
 final class LocalFeedImageDataLoader: FeedImageDataLoader {
     
     private let store: FeedImageStore
@@ -132,8 +139,8 @@ final class LocalFeedImageLoaderTests: XCTestCase {
     }
     
     private func makeSUT(file: StaticString = #file,
-                         line: UInt = #line) -> (LocalFeedImageDataLoader, FeedImageStore) {
-        let store = FeedImageStore()
+                         line: UInt = #line) -> (LocalFeedImageDataLoader, FeedImageStoreSPY) {
+        let store = FeedImageStoreSPY()
         let sut = LocalFeedImageDataLoader(store: store)
         trackForMemoryLeaks(store, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)
@@ -142,7 +149,7 @@ final class LocalFeedImageLoaderTests: XCTestCase {
     
 }
 
-class FeedImageStore {
+private class FeedImageStoreSPY: FeedImageStore {
     
     enum Message: Equatable {
         case retrieve(dataFor: URL)
