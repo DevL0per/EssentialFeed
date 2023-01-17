@@ -38,11 +38,10 @@ final class LocalFeedImageDataLoader: FeedImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) ->  FeedImageDataLoaderTask {
         let task = Task(completion: completion)
         store.retrieve(dataForURL: url) { result in
-            task.complete(with:
-                result.mapError { $0 }
-                      .flatMap { data in
-                  guard let data = data else { return .failure(Error.notFound) }
-                  return .success(data)
+            task.complete(with: result
+                .mapError { $0 }
+                .flatMap { data in
+                    data.map { .success($0) } ?? .failure(Error.notFound)
             })
         }
         return task
