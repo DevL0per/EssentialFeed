@@ -8,7 +8,7 @@
 import XCTest
 import EssentialFeed
 
-final class LocalFeedImageLoaderTests: XCTestCase {
+final class LoadFeedImageDataUseCaseTests: XCTestCase {
     
     func test_init_doesNotMessageUponCreation() {
         let (_, store) = makeSUT()
@@ -65,16 +65,7 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         
         XCTAssertEqual(capturedResults.count, 0)
     }
-    
-    func test_saveImageDataForURL_requestsImageDataInsertionForURL() {
-        let (sut, store) = makeSUT()
-        let url = URL(string: "https://a-given-url.com")!
-        let imageData = "Non Empty".data(using: .utf8)!
-        
-        sut.save(imageData, for: url)
-        XCTAssertEqual(store.receivedMessages, [.insert(data: imageData, for: url)])
-    }
-    
+
     private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
         let exp = expectation(description: "Wait for load completion")
@@ -106,34 +97,6 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         trackForMemoryLeaks(store, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)
         return (sut, store)
-    }
-    
-}
-
-private class FeedImageStoreSPY: FeedImageStore {
-    
-    enum Message: Equatable {
-        case retrieve(dataFor: URL)
-        case insert(data: Data, for: URL)
-    }
-    var receivedMessages = [Message]()
-    var retrivalCompletions = [(RetrivalResult)->Void]()
-    
-    func insert(data: Data, for url: URL, completion: @escaping (InsertionResult) -> Void) {
-        receivedMessages.append(.insert(data: data, for: url))
-    }
-    
-    func retrieve(dataForURL url: URL, completion: @escaping (RetrivalResult)->Void) {
-        receivedMessages.append(.retrieve(dataFor: url))
-        retrivalCompletions.append(completion)
-    }
-    
-    func completeRetrival(with data: Data?, at index: Int = 0) {
-        retrivalCompletions[index](.success(data))
-    }
-    
-    func completeRetrival(with error: Error, at index: Int = 0) {
-        retrivalCompletions[index](.failure(error))
     }
     
 }
