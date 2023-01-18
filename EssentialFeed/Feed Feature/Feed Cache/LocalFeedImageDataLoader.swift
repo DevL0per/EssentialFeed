@@ -21,7 +21,10 @@ extension LocalFeedImageDataLoader {
     public typealias SaveResult = Result<Void, Error>
     
     public func save(_ data: Data, for url: URL, completion: @escaping (SaveResult) -> Void) {
-        store.insert(data: data, for: url, completion: completion)
+        store.insert(data: data, for: url) { [weak self] result in
+            guard let _ = self else { return }
+            completion(result)
+        }
     }
     
 }
