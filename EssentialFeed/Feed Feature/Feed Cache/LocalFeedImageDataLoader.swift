@@ -33,6 +33,10 @@ public final class LocalFeedImageDataLoader: FeedImageDataLoader {
         self.store = store
     }
     
+    public func save(_ data: Data, for url: URL) {
+        store.insert(data: data, for: url)
+    }
+    
     @discardableResult
     public func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result)->Void) ->  FeedImageDataLoaderTask {
         let task = Task(completion: completion)

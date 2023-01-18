@@ -66,6 +66,15 @@ final class LocalFeedImageLoaderTests: XCTestCase {
         XCTAssertEqual(capturedResults.count, 0)
     }
     
+    func test_saveImageDataForURL_requestsImageDataInsertionForURL() {
+        let (sut, store) = makeSUT()
+        let url = URL(string: "https://a-given-url.com")!
+        let imageData = "Non Empty".data(using: .utf8)!
+        
+        sut.save(imageData, for: url)
+        XCTAssertEqual(store.receivedMessages, [.insert(data: imageData, for: url)])
+    }
+    
     private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
         let exp = expectation(description: "Wait for load completion")
@@ -105,12 +114,17 @@ private class FeedImageStoreSPY: FeedImageStore {
     
     enum Message: Equatable {
         case retrieve(dataFor: URL)
+        case insert(data: Data, for: URL)
     }
     
     typealias FeedImageStoreResult = Result<Data?, Error>
     
     var receivedMessages = [Message]()
     var retrivalCompletions = [(FeedImageStoreResult)->Void]()
+    
+    func insert(data: Data, for url: URL) {
+        receivedMessages.append(.insert(data: data, for: url))
+    }
     
     func retrieve(dataForURL url: URL, completion: @escaping (FeedImageStoreResult)->Void) {
         receivedMessages.append(.retrieve(dataFor: url))
