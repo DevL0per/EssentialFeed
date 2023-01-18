@@ -33,6 +33,14 @@ final class CacheFeedImageDataUseCaseTests: XCTestCase {
         }
     }
     
+    func test_saveImageDataForURL_succeedsOnSuccessfulStoreInsertion() {
+        let (sut, store) = makeSUT()
+        
+        expect(sut, toCompleteWith: .success(())) {
+            store.completeInsertionSuccessfully()
+        }
+    }
+    
     private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: LocalFeedImageDataLoader.SaveResult, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
         let imageData = "Non Empty".data(using: .utf8)!
