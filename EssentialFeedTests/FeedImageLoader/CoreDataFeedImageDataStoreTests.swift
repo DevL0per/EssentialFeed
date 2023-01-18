@@ -22,10 +22,21 @@ extension CoreDataFeedStore: FeedImageStore {
 
 final class CoreDataFeedImageDataStoreTests: XCTestCase {
 
-    func test_retriveImageData_deliversEmptyOnEmptyStorage() {
+    func test_retriveImageData_deliversNotFoundOnEmptyStorage() {
         let sut = makeSUT()
         let url = URL(string: "anyURL")!
         expect(sut, toCompleteRetrivalWith: notFound(), for: url)
+    }
+    
+    func test_retriveImageData_deliversNotFoundOnNonEmptyStorage() {
+        let sut = makeSUT()
+        let testData = "TestData".data(using: .utf8)!
+        let url = URL(string: "anyURL")!
+        
+        sut.insert(data: testData, for: url) { _ in }
+        
+        let nonMachingURL = URL(string: "anyURL0")!
+        expect(sut, toCompleteRetrivalWith: notFound(), for: nonMachingURL)
     }
     
     private func notFound() -> FeedImageStore.RetrivalResult {
