@@ -34,7 +34,7 @@ final class LocalFeedImageLoaderTests: XCTestCase {
     
     func test_loadImageData_deliversNotFoundErrorOnEmptyStorage() {
         let (sut, store) = makeSUT()
-        expect(sut, toCompleteWith: .failure(LocalFeedImageDataLoader.Error.notFound), when: {
+        expect(sut, toCompleteWith: .failure(LocalFeedImageDataLoader.LoadError.notFound), when: {
             store.completeRetrival(with: nil)
         })
     }
@@ -116,17 +116,14 @@ private class FeedImageStoreSPY: FeedImageStore {
         case retrieve(dataFor: URL)
         case insert(data: Data, for: URL)
     }
-    
-    typealias FeedImageStoreResult = Result<Data?, Error>
-    
     var receivedMessages = [Message]()
-    var retrivalCompletions = [(FeedImageStoreResult)->Void]()
+    var retrivalCompletions = [(RetrivalResult)->Void]()
     
-    func insert(data: Data, for url: URL) {
+    func insert(data: Data, for url: URL, completion: @escaping (InsertionResult) -> Void) {
         receivedMessages.append(.insert(data: data, for: url))
     }
     
-    func retrieve(dataForURL url: URL, completion: @escaping (FeedImageStoreResult)->Void) {
+    func retrieve(dataForURL url: URL, completion: @escaping (RetrivalResult)->Void) {
         receivedMessages.append(.retrieve(dataFor: url))
         retrivalCompletions.append(completion)
     }
