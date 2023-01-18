@@ -8,7 +8,6 @@
 import Foundation
 
 public final class LocalFeedImageDataLoader {
-    
     private let store: FeedImageStore
     
     public init(store: FeedImageStore) {
@@ -19,8 +18,10 @@ public final class LocalFeedImageDataLoader {
 
 extension LocalFeedImageDataLoader {
     
-    public func save(_ data: Data, for url: URL) {
-        store.insert(data: data, for: url) { _ in }
+    public typealias SaveResult = Result<Void, Error>
+    
+    public func save(_ data: Data, for url: URL, completion: @escaping (SaveResult) -> Void) {
+        store.insert(data: data, for: url, completion: completion)
     }
     
 }

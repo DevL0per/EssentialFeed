@@ -20,22 +20,30 @@ final class CacheFeedImageDataUseCaseTests: XCTestCase {
         let url = URL(string: "https://a-given-url.com")!
         let imageData = "Non Empty".data(using: .utf8)!
         
-        sut.save(imageData, for: url)
+        sut.save(imageData, for: url) { _ in }
         XCTAssertEqual(store.receivedMessages, [.insert(data: imageData, for: url)])
     }
     
-    private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: FeedImageDataLoader.Result, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
+    func test_saveImageDataForURL_deliversErrorOnInsertionError() {
+        let (sut, store) = makeSUT()
+        let error = anyNSError()
+        
+        expect(sut, toCompleteWith: .failure(error)) {
+            store.completeInsertion(with: error)
+        }
+    }
+    
+    private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: LocalFeedImageDataLoader.SaveResult, when action: () -> Void, file: StaticString = #file, line: UInt = #line) {
         let url = URL(string: "https://a-given-url.com")!
+        let imageData = "Non Empty".data(using: .utf8)!
         let exp = expectation(description: "Wait for load completion")
         
-        sut.loadImageData(from: url) { receivedResult in
+        sut.save(imageData, for: url) { receivedResult in
             switch (receivedResult, expectedResult) {
-            case let (.success(receivedData), .success(expectedData)):
-                XCTAssertEqual(receivedData, expectedData, file: file, line: line)
-                
+            case (.success, .success):
+                break
             case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
                 XCTAssertEqual(receivedError, expectedError, file: file, line: line)
-                
             default:
                 XCTFail("Expected result \(expectedResult) got \(receivedResult) instead", file: file, line: line)
             }
@@ -44,7 +52,6 @@ final class CacheFeedImageDataUseCaseTests: XCTestCase {
         }
         
         action()
-        
         wait(for: [exp], timeout: 1.0)
     }
     
