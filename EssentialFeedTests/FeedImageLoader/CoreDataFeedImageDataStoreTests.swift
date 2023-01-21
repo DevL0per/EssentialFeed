@@ -31,10 +31,8 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
         let sut = makeSUT()
         let testData = "TestData".data(using: .utf8)!
         let url = URL(string: "anyURL")!
-        let localFeedImage = LocalFeedImage(id: UUID(), description: nil, location: nil, url: url)
         
-        sut.insert([localFeedImage], timestamp: Date()) { _ in }
-        sut.insert(data: testData, for: url) { _ in }
+        insert(testData, for: url, into: sut)
         
         expect(sut, toCompleteRetrivalWith: .success(testData), for: url)
     }
@@ -43,7 +41,7 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
         return .success(.none)
     }
     
-    private func expect(_ sut: CoreDataFeedStore, toCompleteRetrivalWith expectedResult: FeedImageStore.RetrivalResult, for url: URL,file: StaticString = #file, line: UInt = #line) {
+    private func expect(_ sut: CoreDataFeedStore, toCompleteRetrivalWith expectedResult: FeedImageStore.RetrivalResult, for url: URL, file: StaticString = #file, line: UInt = #line) {
         let exp = expectation(description: "Wait for retrive completion")
         
         sut.retrieve(dataForURL: url) { receivedResult in
@@ -61,6 +59,22 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
             exp.fulfill()
         }
         
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    private func insert(_ data: Data, for url: URL, into sut: CoreDataFeedStore, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "wait for insertion")
+        let image = LocalFeedImage(id: UUID(), description: nil, location: nil, url: url)
+        
+        sut.insert([image], timestamp: Date()) { error in
+            XCTAssertNil(error, "Failed to save \(image) with \(error!)", file: file, line: line)
+            sut.insert(data: data, for: url) { result in
+                if case let .failure(error) = result {
+                    XCTFail("Failed to insert \(data) with \(error)", file: file, line: line)
+                }
+            }
+            exp.fulfill()
+        }
         wait(for: [exp], timeout: 1.0)
     }
     
