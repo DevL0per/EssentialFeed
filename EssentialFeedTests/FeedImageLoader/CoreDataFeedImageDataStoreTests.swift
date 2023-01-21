@@ -37,6 +37,18 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
         expect(sut, toCompleteRetrivalWith: .success(testData), for: url)
     }
     
+    func test_retriveImageData_overridesPreviouslyInsetedValue() {
+        let sut = makeSUT()
+        let previosValue = "TestData0".data(using: .utf8)!
+        let newValue = "TestData1".data(using: .utf8)!
+        let url = URL(string: "anyURL")!
+        
+        insert(previosValue, for: url, into: sut)
+        insert(newValue, for: url, into: sut)
+        
+        expect(sut, toCompleteRetrivalWith: .success(newValue), for: url)
+    }
+    
     private func notFound() -> FeedImageStore.RetrivalResult {
         return .success(.none)
     }
