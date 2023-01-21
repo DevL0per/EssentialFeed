@@ -20,13 +20,13 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
         deleteStoreArtifacts()
     }
     
-    func test_load_deliversNoItemsOnEmptyCache() {
+    func test_loadFeed_deliversNoItemsOnEmptyCache() {
         let sut = makeFeedLoader()
         
         expect(sut, toLoad: [])
     }
     
-    func test_load_deliversItemsSavedOnASeparateInstance() {
+    func test_loadFeed_deliversItemsSavedOnASeparateInstance() {
         let sutToPerformSave = makeFeedLoader()
         let sutToPerformLoad = makeFeedLoader()
         let feedItem = uniqueItem
@@ -35,7 +35,7 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
         expect(sutToPerformLoad, toLoad: [feedItem])
     }
     
-    func test_save_overridesItemsSavedOnASeparateInstance() {
+    func test_saveFeed_overridesItemsSavedOnASeparateInstance() {
         let sutToPerformSave = makeFeedLoader()
         let sutToPerformOverride = makeFeedLoader()
         let sutToPerformLoad = makeFeedLoader()
@@ -60,6 +60,17 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
         expect(imageLoaderToPerfromLoad, toLoad: imageData, for: feedItem.url)
     }
     
+    func test_validateCache_doesNotDeleteRecentlySavedFeed() {
+        let feedLoaderToPerformValidation = makeFeedLoader()
+        let feedLoaderToPerformSave = makeFeedLoader()
+        let feedItem = uniqueItem
+        
+        save([feedItem], feedLoaderToPerformSave)
+        validateCache(with: feedLoaderToPerformValidation)
+        
+        expect(feedLoaderToPerformSave, toLoad: [feedItem])
+    }
+    
     private func save(_ imageData: Data, for url: URL, _ sut: LocalFeedImageDataLoader,
                       file: StaticString = #file, line: UInt = #line) {
         let saveExp = expectation(description: "wait for save completion")
@@ -67,6 +78,14 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
             if case let .failure(error) = result {
                 XCTFail("Expected to save feed successfully, got \(error) instead", file: file, line: line)
             }
+            saveExp.fulfill()
+        }
+        wait(for: [saveExp], timeout: 1.0)
+    }
+    
+    private func validateCache(with feedLoader: LocalFeedLoader, file: StaticString = #file, line: UInt = #line) {
+        let saveExp = expectation(description: "wait for save completion")
+        feedLoader.validateCache() {
             saveExp.fulfill()
         }
         wait(for: [saveExp], timeout: 1.0)
