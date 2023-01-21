@@ -49,6 +49,31 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
         expect(sut, toCompleteRetrivalWith: .success(newValue), for: url)
     }
     
+    
+    func test_retriveImageData_runsSirially() {
+        let sut = makeSUT()
+        let testData = "TestData0".data(using: .utf8)!
+        let url = URL(string: "anyURL")!
+        let image = LocalFeedImage(id: UUID(), description: nil, location: nil, url: url)
+        
+        let exp0 = expectation(description: "insert 0")
+        sut.insert([image], timestamp: Date(), completion: { _ in
+            exp0.fulfill()
+        })
+        
+        
+        let exp1 = expectation(description: "insert 1")
+        sut.insert(data: testData, for: url) { _ in
+            exp1.fulfill()
+        }
+        
+        let exp2 = expectation(description: "retrieve 2")
+        sut.insert(data: testData, for: url) { _ in
+            exp2.fulfill()
+        }
+        wait(for: [exp0, exp1, exp2], timeout: 5.0, enforceOrder: true)
+    }
+    
     private func notFound() -> FeedImageStore.RetrivalResult {
         return .success(.none)
     }

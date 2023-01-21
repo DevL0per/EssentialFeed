@@ -14,7 +14,7 @@ extension CoreDataFeedStore: FeedImageStore {
             guard let managedFeedImage = try? ManagedFeedImage.first(with: url, in: context) else { return }
             managedFeedImage.data = data
             
-            try? context.save()
+            completion(Result { try context.save() })
         }
     }
     
