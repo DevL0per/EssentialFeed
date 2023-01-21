@@ -8,18 +8,6 @@
 import XCTest
 import EssentialFeed
 
-extension CoreDataFeedStore: FeedImageStore {
-    
-    public func insert(data: Data, for url: URL, completion: @escaping (InsertionResult) -> Void) {
-        
-    }
-    
-    public func retrieve(dataForURL url: URL, completion: @escaping (RetrivalResult) -> Void) {
-        completion(.success(.none))
-    }
-    
-}
-
 final class CoreDataFeedImageDataStoreTests: XCTestCase {
 
     func test_retriveImageData_deliversNotFoundOnEmptyStorage() {
@@ -37,6 +25,18 @@ final class CoreDataFeedImageDataStoreTests: XCTestCase {
         
         let nonMachingURL = URL(string: "anyURL0")!
         expect(sut, toCompleteRetrivalWith: notFound(), for: nonMachingURL)
+    }
+    
+    func test_retriveImageData_deliversImageDataFoundOnWhenThereIsAStoredImageDataMatchingURL() {
+        let sut = makeSUT()
+        let testData = "TestData".data(using: .utf8)!
+        let url = URL(string: "anyURL")!
+        let localFeedImage = LocalFeedImage(id: UUID(), description: nil, location: nil, url: url)
+        
+        sut.insert([localFeedImage], timestamp: Date()) { _ in }
+        sut.insert(data: testData, for: url) { _ in }
+        
+        expect(sut, toCompleteRetrivalWith: .success(testData), for: url)
     }
     
     private func notFound() -> FeedImageStore.RetrivalResult {
