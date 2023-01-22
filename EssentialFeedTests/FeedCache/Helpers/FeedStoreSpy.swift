@@ -55,6 +55,10 @@ class FeedStoreSpy: FeedStore {
         retrivalCompletion[index](.found(feed: items, timestamp: timestamp))
     }
     
+    func completeDeletionSuccessfully(at index: Int = 0) {
+        deletionCompletion[index](nil)
+    }
+    
     func completeDeletion(with error: Error, at index: Int = 0) {
         deletionCompletion[index](error)
     }
