@@ -96,7 +96,7 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     
     private func validateCache(with feedLoader: LocalFeedLoader, file: StaticString = #file, line: UInt = #line) {
         let saveExp = expectation(description: "wait for save completion")
-        feedLoader.validateCache() {
+        feedLoader.validateCache() { _ in
             saveExp.fulfill()
         }
         wait(for: [saveExp], timeout: 1.0)
