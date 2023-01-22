@@ -19,7 +19,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         let (sut, store) = makeSUT()
         let error = anyNSError()
         
-        sut.validateCache()
+        sut.validateCache() {}
         store.completeRetrival(with: error)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
@@ -28,7 +28,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
     func test_validateCache_doesNotDeletesCachedItemsOnEmptyCache() {
         let (sut, store) = makeSUT()
         
-        sut.validateCache()
+        sut.validateCache() {}
         store.completeRetrivalWithAnEmptyCache()
         
         XCTAssertEqual(store.receivedMessages, [.retrieve])
@@ -42,7 +42,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: 1)
         
-        sut.validateCache()
+        sut.validateCache() {}
         store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve])
@@ -56,7 +56,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge()
         
-        sut.validateCache()
+        sut.validateCache() {}
         store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
@@ -70,7 +70,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         
         let maxAgeOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
-        sut.validateCache()
+        sut.validateCache() {}
         store.completeRetrival(with: localItems, timestamp: maxAgeOldTimestamp)
         
         XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCacheFeed])
@@ -85,7 +85,7 @@ final class ValidateFeedUseCaseTests: XCTestCase {
         
         let sevenDaysOldTimestamp = today.minusFeedCacheMaxAge().adding(seconds: -1)
         
-        sut?.validateCache()
+        sut?.validateCache() {}
         sut = nil
         store.completeRetrival(with: localItems, timestamp: sevenDaysOldTimestamp)
         

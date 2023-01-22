@@ -20,7 +20,7 @@ public class LocalFeedLoader {
 }
 
 extension LocalFeedLoader {
-    public func validateCache(completion: @escaping ()->Void = {}) {
+    public func validateCache(completion: @escaping ()->Void) {
         store.retrieve { [weak self] result in
             guard let self = self else { return }
             switch result {
